@@ -1,0 +1,106 @@
+---
+title: "Blog 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(usmap)
+library(ggplot2)
+
+# Read in data
+popvote <- read_csv("data/popvote_1948-2016.csv")
+pvstate_df <- read_csv("data/popvote_bystate_1948-2016.csv")
+
+# Load US map
+states_map <- usmap::us_map()
+unique(states_map$abbr)
+
+# sample theme
+my_pretty_theme <- theme_bw() + 
+    theme(panel.border = element_blank(),
+          plot.title   = element_text(size = 15, hjust = 0.5), 
+          axis.text.x  = element_text(angle = 45, hjust = 1),
+          axis.text    = element_text(size = 12),
+          strip.text   = element_text(size = 18),
+          axis.line    = element_line(colour = "black"),
+          legend.position = "top",
+          legend.text = element_text(size = 12))
+
+
+```
+
+```{r}
+
+# class plot
+ggplot(pvstate_df, aes(x = year, y = pv2p, colour = party)) +
+    geom_line(stat = "identity") +
+    scale_color_manual(values = c("blue", "red"), name = "") +
+    xlab("") + ## no need to label an obvious axis
+    ylab("popular vote %") +
+    ggtitle("Presidential Vote Share (1948-2016)") + 
+    scale_x_continuous(breaks = seq(from = 1948, to = 2016, by = 4)) +
+    my_pretty_theme
+
+```
+
+```{r map}
+
+## shapefile of states from `usmap` library
+states_map <- usmap::us_map()
+head(states_map)
+
+## map: GOP pv2p (`plot_usmap` is wrapper function of `ggplot`)
+## note: `usmap` merges this internally, but other packages may not!
+plot_usmap(data = pvstate_df %>% filter(year == 2000), regions = "states", values = "R_pv2p") + 
+  scale_fill_gradient(low = "white", high = "red", name = "GOP two-party voteshare") +
+  theme_void()
+
+## map: wins
+pv_win_map <- pvstate_df %>%
+    filter(year == 2000) %>%
+    mutate(winner = ifelse(R > D, "republican", "democrat"))
+
+plot_usmap(data = pv_win_map, regions = "states", values = "winner") +
+    scale_fill_manual(values = c("blue", "red"), name = "state PV winner") +
+    theme_void()
+
+## map: win-margins
+pv_margins_map <- pvstate_df %>%
+    filter(year == 2000) %>%
+    mutate(win_margin = (R_pv2p-D_pv2p))
+
+plot_usmap(data = pv_margins_map, regions = "states", values = "win_margin") +
+    scale_fill_gradient2(
+      high = "red", 
+      #mid = scales::muted("purple"), ##TODO: purple or white better?
+      mid = "white",
+      low = "blue", 
+      breaks = c(-50,-10,0,10,50), 
+      limits = c(-50,50),
+      name = "win margin"
+    ) +
+    theme_void()
+
+pv_margins_map
+
+## map grid
+pv_map_grid <- pvstate_df %>%
+    filter(year >= 1980) %>%
+    mutate(winner = ifelse(R > D, "republican", "democrat"))
+
+plot_usmap(data = pv_map_grid, regions = "states", values = "winner", color = "white") +
+    facet_wrap(facets = year ~.) + ## specify a grid by year
+    scale_fill_manual(values = c("blue", "red"), name = "PV winner") +
+    theme_void() +
+    theme(strip.text = element_text(size = 12),
+          aspect.ratio = 1)
+
+ggsave("PV_states_historical.png", height = 3, width = 8)
+
+
+```
+
+
