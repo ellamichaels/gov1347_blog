@@ -1,39 +1,31 @@
-## Welcome to GitHub Pages 
+# Economy
+## September18, 2020
 
-You can use the [editor on GitHub](https://github.com/ellamichaels/gov1347_blog/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+**_"It's the economy, stupid."_**
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Bill Clinton’s campaign manager, James Carville, famously [coined this phrase](https://www.cnn.com/2020/05/08/opinions/economy-2020-election-trump-biden-zelizer/index.html) leading up to the 1992 presidential election. Candidate Clinton’s campaign played up the early 90s recession in order to unseat successfully incumbent president George H. W. Bush. This quip only dates back to 1992, but the general wisdom that the economy plays a major role in election outcomes is probably about as old as democracy itself.
 
-### Markdown
+But “the economy” is a big concept. It includes indicators like stock market performance or annual gross domestic product (GDP) that measure the health of the national economy. It also includes things like real disposable income (RDI) or local unemployment rates that reveal less about national-level economic health but paint a clearer picture of the state of voters’ pocketbooks. While each measure is certainly related to the others, they tell slightly different stories about election outcomes. Here, we’ll assess the relationship between a variety of different economic indicators and past election outcomes, and what the data suggest about the upcoming 2020 presidential election.
+
+### Methodology and Terms
+For these purposes, we’ll focus on economic indicators from the second fiscal quarter of presidential election years. Research suggests that voters weigh the year or few months leading up to an election more heavily than the rest of an incumbent’s term in office. [(Healy and Lenz, 2014)](https://hollis.harvard.edu/primo-explore/fulldisplay?docid=TN_cdi_gale_infotracacademiconefile_A354446646&context=PC&vid=HVD2&search_scope=everything&tab=everything&lang=en_US)
 
 
+We’ll build predictive models around three variables to identify how they impact the popular vote share of incumbent political parties:
+- Second quarter GDP growth
+- Second quarter RDI growth
+- The change in the unemployment rate between Q1 and Q2
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+If it is true that voters consider each of these indicators at the ballot box, stronger economic performance (i.e. higher GDP and RDI growth and larger decreases in unemployment rates) would track with higher popular vote shares for incumbents.
 
-```markdown
-Syntax highlighted code block
+In order to evaluate the performance of each model, we’ll consider the following tests:
+- **Statistical significance** (cutoff: p < 0.05)
+- **R-squared value:** This is a measure of how much variance in a data set is explained by the model. The R-squared value evaluates the _in-sample fit_ of the model, namely how well the model fits the data it is based on. Formula: R^2 = 1 - (unexplained variance / total variance in data set)
+- **Cross-validation:** Cross validation applies a model to random subsets of its original sample. It evaluates the _out-of-sample fit_ of the model, namely how well it fits data sets it is not based on.
 
-# Header 1
-## Header 2
-### Header 3
+### Q2 GDP Growth
 
-- Bulleted
-- List
+| Trump's Election   |  
+:-------------------------:|
+| ![](gov1347_blog_2/q2_gdp_plot.png)|  
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/ellamichaels/gov1347_blog/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
