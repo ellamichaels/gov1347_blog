@@ -25,7 +25,21 @@ In order to evaluate the performance of each model, we’ll consider the followi
 
 ### Q2 GDP Growth
 
-| Trump's Election   |  
+| Impact of Q2 GDP Growth on Incumbent Party Vote Share   |  
 :-------------------------:|
-| ![](gov1347_blog_2/q2_gdp_plot.png)|  
+| ![](figures/q2_gdp_plot.png)|  
+
+### Q2 RDI Growth
+
+| Impact of Q2 Real Disposable Income (RDI) Growth on Incumbent Party Vote Share   |  
+:-------------------------:|
+| ![](figures/q2_rdi_plot.png)|  
+
+### Q2 Unemployment Rate Change
+
+| Impact of Change in Q2 vs Q1 Unemployment Rate on Incumbent Party Vote Share |  
+:-------------------------:|
+| ![](figures/q2_unchange_plot.png)|  
+
+
 
