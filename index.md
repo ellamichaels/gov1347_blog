@@ -59,6 +59,10 @@ _Takeaways:_
 - **R-squared:** The model’s R-squared value is 0.272, meaning the model explains about 27.2% of the variation in the actual dataset
 - **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 1.220 points greater than the actual result.
 
-**This model predicts that Donald Trump will win a mathematically impossible -28.32% of popular vote.** 
+**This model predicts that Donald Trump will win a mathematically impossible -28.32% of popular vote.** Unemployment rates skyrocketed from just under 4% to around 13% (and counting) between Q1 and Q2 of 2020 due to COVID-19, a historic increase.
+
+### Conclusions
+
+While data from past elections demonstrates that there is some relationship between economic performance and incumbent performance, model predictions for 2020 indicate that 1) the economy isn't everything, and 2) different economic indicators can tell different stories. Pandemic conditions wildly distort economic conditions and may lead voters to different conclusions about the incumbent's culpability for national performance. 
 
 
