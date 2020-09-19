@@ -3,6 +3,21 @@ title: "Blog 1"
 output: html_document
 ---
 
+Bush's First Election            |  Bush's Second Election
+:-------------------------:|:-------------------------:
+ ![](figures/swing_00_col.png)  |  ![](figures/swing_04_col.png)
+
+
+Obama's First Election            |  Obama's Second Election
+:-------------------------:|:-------------------------:
+ ![](figures/swing_08_col.png)  |  ![](figures/swing_12_col.png)
+
+
+| Trump's Election   |  
+:-------------------------:|
+| ![](figures/swing_16_col.png)|  
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -141,9 +156,36 @@ swing_12_col <- pvstate_2012 %>%
   theme(legend.position = "none")
 
 
-# 2012 swing column graph
+# 2008 swing column graph
 
-swing_12_col <- pvstate_2012 %>%
+swing_08_col <- pvstate_2008 %>%
+  filter(is_swing == TRUE) %>%
+  ggplot(aes(swing, fct_reorder(state, swing, .desc = TRUE), fill = swing_dir)) +
+  geom_col() +
+  scale_fill_manual(values = c("royalblue2")) + 
+  theme_classic() +
+  labs(x = "% Change in Party Vote Share",
+       y = "State",
+       title = "Magnitude of Partisan Shift Between 2004 and 2008",
+       subtitle = "In swing states (margin of victory >5%)\nPositive shift indicates rightward swing") + 
+  theme(legend.position = "none")
+
+# 2004 swing column graph
+
+swing_04_col <- pvstate_2004 %>%
+  filter(is_swing == TRUE) %>%
+  ggplot(aes(swing, fct_reorder(state, swing, .desc = TRUE), fill = swing_dir)) +
+  geom_col() +
+  scale_fill_manual(values = c("royalblue2", "red3")) + 
+  theme_classic() +
+  labs(x = "% Change in Party Vote Share",
+       y = "State",
+       title = "Magnitude of Partisan Shift Between 2000 and 2004",
+       subtitle = "In swing states (margin of victory >5%)\nPositive shift indicates rightward swing") + 
+  theme(legend.position = "none")
+
+
+swing_00_col <- pvstate_2000 %>%
   filter(is_swing == TRUE) %>%
   ggplot(aes(swing, fct_reorder(state, swing, .desc = TRUE), fill = swing_dir)) +
   geom_col() +
@@ -155,6 +197,9 @@ swing_12_col <- pvstate_2012 %>%
        subtitle = "In swing states (margin of victory >5%)\nPositive shift indicates rightward swing") + 
   theme(legend.position = "none")
 
+swing_08_col
+swing_04_col
+swing_00_col
 ```
 
 
@@ -221,10 +266,10 @@ pv_margins_map <- pvstate_df %>%
 
 plot_usmap(data = pv_margins_map, regions = "states", values = "win_margin") +
     scale_fill_gradient2(
-      high = "red", 
+      high = "red3", 
       #mid = scales::muted("purple"), ##TODO: purple or white better?
       mid = "white",
-      low = "blue", 
+      low = "royalblue2", 
       breaks = c(-50,-10,0,10,50), 
       limits = c(-50,50),
       name = "win margin"
@@ -240,19 +285,19 @@ ggsave("figures/PV_margins_map.png")
 ```{r map grid}
 ## map grid
 pv_map_grid <- pvstate_df %>%
-    filter(year >= 1980) %>%
+    filter(year >= 2000) %>%
     mutate(winner = ifelse(R > D, "republican", "democrat"))
 
 pv_states_historical <- plot_usmap(data = pv_map_grid, regions = "states", values = "winner", color = "white") +
     facet_wrap(facets = year ~.) + ## specify a grid by year
-    scale_fill_manual(values = c("blue", "red"), name = "PV winner") +
+    scale_fill_manual(values = c("royalblue2", "red3"), name = "PV winner") +
     theme_void() +
     theme(strip.text = element_text(size = 12),
           aspect.ratio = 1)
 
 pv_states_historical
 
-ggsave("PV_states_historical.png", height = 3, width = 8)
+ggsave("figures/PV_states_historical.png", height = 3, width = 8)
 
 
 ```
