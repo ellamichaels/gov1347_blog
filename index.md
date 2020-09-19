@@ -22,3 +22,10 @@ In order to evaluate the performance of each model, we’ll consider the followi
 - **Statistical significance** (cutoff: p < 0.05)
 - **R-squared value:** This is a measure of how much variance in a data set is explained by the model. The R-squared value evaluates the _in-sample fit_ of the model, namely how well the model fits the data it is based on. Formula: R^2 = 1 - (unexplained variance / total variance in data set)
 - **Cross-validation:** Cross validation applies a model to random subsets of its original sample. It evaluates the _out-of-sample fit_ of the model, namely how well it fits data sets it is not based on.
+
+### Q2 GDP Growth
+
+| Trump's Election   |  
+:-------------------------:|
+| ![](gov1347_blog_2/q2_gdp_plot.png)|  
+
