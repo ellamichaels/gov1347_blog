@@ -33,6 +33,7 @@ _Takeaways:_
 - **R-squared:** The model’s R-squared value is 0.326, meaning the model explains about 32.6% of the variation in the actual dataset
 - **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 0.0849 points less than the actual result.
 
+**This model predicts that Donald Trump will win 21.26% of the popular vote** based on Q2 GDP growth, which hit a [historic low](https://www.washingtonpost.com/business/2020/07/30/gdp-q2-coronavirus/). This result is highly mismatched with [current polling](https://www.npr.org/2020/09/18/914103948/poll-biden-maintains-lead-over-trump) in which Biden leads Trump 52% to 43%. 
 
 ### Q2 RDI Growth
 
@@ -45,6 +46,7 @@ _Takeaways:_
 - **R-squared:** The model’s R-squared value is 0.258, meaning the model explains about 25.8% of the variation in the actual dataset
 - **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 3.19 points less than the actual result.
 
+**This model predicts that Donald Trump will win 80.33% of the popular vote** based on Q2 RDI growth. This result is also highly mismatched and RDI growth, which was much higher in Q2 than normal, might have been [distorted](https://www.bea.gov/news/2020/gross-domestic-product-2nd-quarter-2020-advance-estimate-and-annual-update) by economic stimulus programs in response to COVID-19. It is unlikely to be especially representative of most Americans' financial situations during the pandemic.
 
 ### Q2 Unemployment Rate Change
 
@@ -56,5 +58,7 @@ _Takeaways:_
 - **Effect:** Based on data from every presidential election since 1976, the average effect of a one-point increase in the unemployment rate between Q1 and Q2, is an 8.185 point decrease in the incumbent party’s popular vote share. 
 - **R-squared:** The model’s R-squared value is 0.272, meaning the model explains about 27.2% of the variation in the actual dataset
 - **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 1.220 points greater than the actual result.
+
+**This model predicts that Donald Trump will win a mathematically impossible -28.32% of popular vote.** 
 
 
