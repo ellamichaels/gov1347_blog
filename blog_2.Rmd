@@ -1,0 +1,132 @@
+---
+title: "Blog 2 Rmd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+
+# loading data
+
+econ <- read.csv("data/econ.csv")
+local <- read.csv("data/local.csv") %>%
+  clean_names() %>%
+  rename(state = state_and_area) %>%
+  select(-x, -fips_code)
+pv_nat <- read.csv("data/popvote_1948-2016.csv")
+pv_state <- read.csv("data/popvote_bystate_1948-2016.csv")
+
+# join pv_nat and econ
+dat <- pv_nat %>% 
+  filter(incumbent_party == TRUE) %>%
+  select(year, winner, pv2p) %>%
+  left_join(econ)
+
+# q2 for recency
+q2_dat <- dat %>%
+  filter(quarter == 2) %>%
+  mutate(stock_growth = (stock_close - stock_open)/stock_open)
+
+```
+
+
+```{r q2 GDP}
+
+# code from section, name change
+lm_gdp <- lm(pv2p ~ GDP_growth_qt, data = q2_dat)
+summary(lm_gdp)
+
+# from section with some font sizing changed
+q2_gdp_plot <- q2_dat %>%
+  ggplot(aes(x=GDP_growth_qt, y=pv2p,
+             label=year)) + 
+    geom_text(size = 8) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Q2 GDP growth (X)") +
+    ylab("Incumbent party PV (Y)") +
+    theme_bw() +
+    ggtitle("Y = 49.44 + 2.969 * X") + 
+    theme_classic() +
+    theme(plot.title = element_text(size = 24),
+          axis.text = element_text(size = 16),
+          axis.title = element_text(size = 16))
+
+
+# model evaluation
+gdp_r.squared <- summary(lm_gdp)$r.squared # 0.3261369
+q2_gdp_plot
+ggsave("figures/q2_gdp_plot.png")
+
+
+```
+
+```{r unemployment}
+
+# creating data set with unemployment change variable
+un_dat <- dat %>%
+  select(year, quarter, unemployment, pv2p) %>%
+  pivot_wider(names_from = quarter,  names_prefix = "unemployment", values_from = unemployment) %>%
+  mutate(unemp_change = unemployment2 - unemployment1)
+
+# q2 unemployment change model
+lm_unemp_change <- lm(pv2p ~ unemp_change, data = un_dat)
+summary(lm_unemp_change)
+
+# plot change effect
+q2_unchange_plot <- un_dat %>%
+  ggplot(aes(x=unemp_change, y=pv2p,
+             label=year)) + 
+    geom_text(size = 8) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Change in Unemployment from Q1 to Q2 (X)") +
+    ylab("Incumbent party PV (Y)") +
+    theme_bw() +
+    ggtitle("Y = 52.02 + -8.733 * X") + 
+    theme_classic() +
+    theme(plot.title = element_text(size = 24),
+          axis.text = element_text(size = 16),
+          axis.title = element_text(size = 16))
+
+
+q2_unchange_plot
+ggsave("figures/q2_unchange_plot.png")
+
+```
+
+```{r RDI growth}
+
+# rdi growth model
+lm_rdi <- lm(pv2p ~ RDI_growth, data = q2_dat)
+summary(lm_rdi)
+
+# rdi growth effect plot
+q2_rdi_plot <- q2_dat %>%
+  ggplot(aes(x=RDI_growth, y=pv2p,
+             label=year)) + 
+    geom_text(size = 8) +
+    geom_smooth(method="lm", formula = y ~ x) +
+    geom_hline(yintercept=50, lty=2) +
+    geom_vline(xintercept=0.01, lty=2) + # median
+    xlab("Q2 RDI growth (X)") +
+    ylab("Incumbent party PV (Y)") +
+    theme_bw() +
+    ggtitle("Y = 48.79 + 324.325 * X") + 
+    theme_classic() +
+    theme(plot.title = element_text(size = 24),
+          axis.text = element_text(size = 16),
+          axis.title = element_text(size = 16))
+
+
+q2_rdi_plot
+ggsave("figures/q2_rdi_plot.png")
+
+```
+
