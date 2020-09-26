@@ -31,6 +31,8 @@ q2_dat <- dat %>%
   filter(quarter == 2) %>%
   mutate(stock_growth = (stock_close - stock_open)/stock_open)
 
+
+
 ```
 
 
@@ -57,12 +59,26 @@ q2_gdp_plot <- q2_dat %>%
           axis.text = element_text(size = 16),
           axis.title = element_text(size = 16))
 
-
-# model evaluation
-gdp_r.squared <- summary(lm_gdp)$r.squared # 0.3261369
-q2_gdp_plot
 ggsave("figures/q2_gdp_plot.png")
 
+# model evaluation
+
+# r squared
+summary(lm_gdp)$r.squared # 0.3261369
+
+# outsampling - section code varied slightly
+gdp_outsamp_mod  <- lm(pv2p ~ GDP_growth_qt, q2_dat[q2_dat$year != 2016,])
+gdp_outsamp_pred <- predict(gdp_outsamp_mod, q2_dat[q2_dat$year == 2016,])
+gdp_outsamp_true <- q2_dat$pv2p[q2_dat$year == 2016] 
+gdp_outsamp_pred - gdp_outsamp_true
+
+
+# 2020 prediction
+GDP_new <- econ %>%
+    subset(year == 2020 & quarter == 2) %>%
+    select(GDP_growth_qt)
+
+predict(lm_gdp, GDP_new)
 
 ```
 
@@ -96,8 +112,27 @@ q2_unchange_plot <- un_dat %>%
           axis.title = element_text(size = 16))
 
 
-q2_unchange_plot
+summary(lm_unemp_change)$r.squared 
 ggsave("figures/q2_unchange_plot.png")
+
+# outsampling
+un_outsamp_mod  <- lm(pv2p ~ unemp_change, un_dat[un_dat$year != 2016,])
+un_outsamp_pred <- predict(un_outsamp_mod, un_dat[un_dat$year == 2016,])
+un_outsamp_true <- un_dat$pv2p[un_dat$year == 2016] 
+un_outsamp_pred - un_outsamp_true
+
+# 2020 prediction
+un_q1 <- econ %>%
+    subset(year == 2020 & quarter == 1) %>%
+    select(unemployment)
+un_q2 <- econ %>%
+    subset(year == 2020 & quarter == 1) %>%
+    select(unemployment)
+
+new_un <- un_q2 - un_q1
+new_un
+
+52.023 - 8.733*(13.033333-3.833333)
 
 ```
 
@@ -125,8 +160,22 @@ q2_rdi_plot <- q2_dat %>%
           axis.title = element_text(size = 16))
 
 
-q2_rdi_plot
+summary(lm_rdi)$r.squared 
 ggsave("figures/q2_rdi_plot.png")
+
+
+# leave one out
+rdi_outsamp_mod  <- lm(pv2p ~ RDI_growth, q2_dat[q2_dat$year != 2016,])
+rdi_outsamp_pred <- predict(rdi_outsamp_mod, q2_dat[q2_dat$year == 2016,])
+rdi_outsamp_true <- q2_dat$pv2p[q2_dat$year == 2016] 
+rdi_outsamp_pred - rdi_outsamp_true
+
+# 2020 prediction
+RDI_new <- econ %>%
+    subset(year == 2020 & quarter == 2) %>%
+    select(RDI_growth)
+
+predict(lm_rdi, RDI_new)
 
 ```
 
