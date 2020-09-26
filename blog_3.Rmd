@@ -1,0 +1,18 @@
+---
+title: "Blog 3 - Polling"
+output: html_notebook
+---
+
+```{r setup}
+
+library(tidyverse)
+library(ggplot2)
+
+# reading in poll data
+polls_2016 <- read.csv("data/polls_2016.csv")
+polls_2020 <- read.csv("data/polls_2020.csv")
+pollavg <- read.csv("data/pollavg_1968-2016.csv")
+pollavg_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
+
+```
+
