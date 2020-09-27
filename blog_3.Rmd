@@ -7,12 +7,220 @@ output: html_notebook
 
 library(tidyverse)
 library(ggplot2)
+library(janitor)
+library(gt)
+library(broom)
+
 
 # reading in poll data
-polls_2016 <- read.csv("data/polls_2016.csv")
+polls_2016 <- read.csv("data/polls_2016.csv") 
 polls_2020 <- read.csv("data/polls_2020.csv")
-pollavg <- read.csv("data/pollavg_1968-2016.csv")
+pollavg <- read.csv("data/pollavg_1968-2016.csv") %>%
+  rename(candidate = candidate_name)
 pollavg_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
+poll_ratings_full <- read.csv("data/pollster-ratings.csv") # for reference
+pv_nat <- read.csv("data/popvote_1948-2016.csv") 
+econ <- read.csv("data/econ.csv") %>%
+  filter(quarter == 2)
+
+  
+
+# Poll ratings + creating bias variable
+poll_ratings <- read.csv("data/pollster-ratings.csv") %>%
+  clean_names() %>%
+  select(pollster, x538_grade, races_called_correctly, bias, simple_average_error) %>%
+  rename(grade = x538_grade) %>% # making my job easier 
+  separate(bias, into = c("party", "bias"), sep = " ") %>%
+  mutate(bias = as.numeric(bias)) %>%
+  arrange(simple_average_error) 
+
+# September 2016 polling
+polls_sept16 <- polls_2016 %>%
+  filter(str_detect(enddate, "^9/"))
+
+# September 2020 polling
+polls_sept20 <- polls_2020 %>%
+  filter(str_detect(end_date, "^9/")) %>%
+  filter(answer == "Biden" | answer == "Trump") %>% # drop third parties
+  select(pollster, answer, pct)
+
+
+# Average polling in september (5-9 weeks pre-election)
+sept <- pollavg %>%
+  filter(weeks_left == 9 | weeks_left == 8 | weeks_left == 7 | weeks_left == 6 | weeks_left == 5) %>%
+  group_by(year, party) %>%
+  mutate(avg = mean(avg_support)) %>%
+  ungroup() %>%
+  select(year, party, avg) %>%
+  distinct() %>%
+  left_join(econ) %>%
+  left_join(pv_nat, by = c("year", "party"))
 
 ```
+
+
+```{r republican democrat bias plot}
+
+# plotting the average party bias of each polling organization
+bias_plot <- poll_ratings %>%
+  ggplot(aes(bias, fill = party)) +
+  geom_bar(binwidth = 1, position = "dodge") +
+  theme_classic() +
+  scale_fill_manual(values = c("lightblue", "indianred")) +
+  labs(y = "Number of Polling Organizations",
+       x = "Average Bias",
+       title = "Distribution of Average Party Bias",
+       fill = "Party Direction") +
+  scale_x_continuous(breaks = seq(0:20), limits = c(1, 20))
+
+
+bias_plot
+
+```
+
+```{r quality variation}
+
+# creating simple groupings, separating full and provisional polls, releveling grade rank
+poll_ratings <- poll_ratings %>%
+  mutate(grade_simple = case_when(grade == "A" | grade == "A-" | grade == "A+" | grade == "A/B" ~ "A",
+                                  grade == "D-" | grade == "D" ~ "D",
+                                  grade == "F" ~ "F",
+                                  grade == "B" | grade == "B-" | grade == "B+" | grade == "B/C" ~ "B",
+                                  TRUE ~ "C")) %>%
+  mutate(provisional = case_when(grepl("/", grade) ~ "provisional",
+                                 TRUE ~ "full")) %>%
+  mutate(grade = fct_relevel(grade, "A+", "A", "A-", "A/B", "B+", "B", "B-", "B/C", 
+                             "C+", "C", "C-", "C/D", "D+", "D-", "F"))
+
+
+
+# grouped by simple letter grade, colored by provisional or full
+grade_plot_simple <- poll_ratings %>%
+  ggplot(aes(grade_simple, fill = provisional)) +
+  geom_bar() +
+  theme_classic() +
+  scale_fill_manual(values = c("palegreen4", "grey66")) +
+  labs(y = "Number of Polling Organizations",
+       x = "Grade Grouping",
+       title = "Distribution of 538 Pollster Ratings",
+       fill = "Provisional or Official") 
+
+# only polls with large sample sizes
+
+grade_plot_full_simp <- poll_full_sample %>%
+  drop_na() %>%
+  ggplot(aes(grade_simple, fill = party)) +
+  geom_bar() +
+  theme_classic() +
+  scale_fill_manual(values = c("lightblue", "indianred")) +
+  labs(y = "Number of Polling Organizations",
+       x = "Grade Grouping",
+       title = "Distribution of 538 Pollster Ratings",
+       subtitle = "Only Nonprovisional Ratings",
+       fill = "Pollster Party Bias") 
+
+
+# simple avg error plot
+
+grade_plot_simple
+grade_plot_full_simp
+
+ggsave("figures/grade_plot_simple.png", plot = grade_plot_simple)
+ggsave("figures/grade_plot_full_simp.png", plot = grade_plot_full_simp)
+
+```
+
+```{r}
+
+x <- polls_sept20 %>%
+  group_by(answer) %>%
+  mutate(avg = mean(pct)) %>%
+  mutate(year = 2020) %>%
+  left_join(econ) %>%
+  mutate(incumbent_party = case_when(answer == "Biden" ~ FALSE,
+                                     TRUE ~ TRUE))
+
+x <- x %>%
+  slice(1)
+
+x
+
+```
+
+```{r september history}
+
+sept_model <- lm(pv ~ avg + GDP_growth_qt*incumbent_party, data = sept)
+summary(sept_model)
+
+# full september model
+full_sept_model <- sept_model %>%
+  tidy() %>%
+  select(term, estimate, std.error, p.value) %>%
+  gt() %>% 
+    tab_header(title = "Relationship Between September Polling, Q2 GDP, & Popular Voteshare") %>% 
+    cols_label(term = "Variable", 
+               estimate = "Estimate",
+               std.error = "Standard Error",
+               p.value = "P-value") %>%
+    tab_source_note(source_note = "R-squared = 0.7682") %>%
+    tab_spanner(
+      label = "Regression Model Based on 1968-2016",
+      columns = vars(term, estimate, std.error, p.value)) 
+
+full_sept_model
+
+# 2016 leave one out
+
+sept_less16 <- sept %>%
+  filter(year != 2016)
+
+sept16_model <- lm(pv ~ avg + GDP_growth_qt*incumbent_party, data = sept_less16)
+summary(sept16_model)
+
+
+
+#Republican
+pred_16 <- predict(sept16_model, sept[sept$year == 2016,])
+pred_20 <- predict(sept_model, x)
+pred_20
+
+
+```
+
+```{r weighted prediction}
+
+## 2020 ##
+
+# sept 16 polls w grades
+polls_sept20 <- polls_sept20 %>%
+  left_join(poll_ratings)
+
+polls_sept16 <- polls_sept16 %>%
+  left_join(poll_ratings)
+
+# weighting
+a_mean <- polls_sept20 %>%
+  group_by(answer) %>%
+  filter(grade_simple == "A") %>%
+  summarise(mean(pct))
+
+b_mean <- polls_sept20 %>%
+  group_by(answer) %>%
+  filter(grade_simple == "B") %>%
+  summarise(mean(pct))
+
+c_mean <- polls_sept20 %>%
+  group_by(answer) %>%
+  filter(grade_simple == "C") %>%
+  summarise(mean(pct))
+
+# Biden 2020
+a_mean[1,2]*0.75 + b_mean[1,2]*0.2 + c_mean[1,2]*0.05
+
+# Trump 2020
+a_mean[2,2]*0.75 + b_mean[2,2]*0.2 + c_mean[2,2]*0.05
+
+
+```
+
 
