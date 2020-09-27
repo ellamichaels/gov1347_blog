@@ -24,3 +24,9 @@ The following distribution only assesses those polling organizations with a larg
 
 ![](figures/grade_plot_full_simp.png)
 
+## Weighted Predictions
+Given the variation in pollster quality, I generated a prediction on modeled 2020 September poll results using different weights for different pollster grades. I excluded any that received grades of D+ or below (i.e. only those with a C or higher). A-grades received a weight of 0.75, B-grades received a weight of 0.2, and C-grades received a weight of 0.05. This approach yielded the prediction that Biden would receive **50.18%** of the popular vote and Trump would receive **42.46%**. This compared to an overall September average of **49.58%** for Biden and **42.54%** for Trump. The results did not change significantly.
+
+Poll-only results also seem much more realistic than the ensemble model in this case, likely because of 2020-specific distortions.
+
+
