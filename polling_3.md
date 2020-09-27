@@ -11,4 +11,16 @@ Most credible presidential forecasting outlets, [including 538](https://fivethir
 
 ![](figures/full_sept_model.png)
 
-This model has an R-squared value of 0.7682, which is far stronger than any of last week's fundamentals-only models. 
+This model has an R-squared value of 0.7682, which is far stronger than any of last week's fundamentals-only models. Using leave-one-out validation for 2016, it predicted that Hillary Clinton would win **46.45%** of the popular vote and Donald Trump would win **45.85%**. Interestingly, this is actually a closer margin than the actual result of 47% for Clinton and about 45% for Trump. 
+
+However, because fundamental indicators, especially Q2 GDP growth (or lack thereof) are so [historically bad](https://www.wsj.com/articles/coronavirus-slump-is-worst-since-great-depression-will-it-be-as-painful-11589115601), the prediction this model generates for 2020 is still fairly distorted. It predicts that Joe Biden will win about **70%** of the popular vote while Donald Trump will win about **36%**. 
+
+## Pollster Quality
+This model uses an unweighted average of aggregated polls, but not all polls are created equal. 538 assigns [different rankings](https://github.com/fivethirtyeight/data/tree/master/pollster-ratings) to different polling organizations, and there's quite a bit of variation. Perhaps predictably, most organizations hover around a B rating. A distribution, with letter grade gradations (i.e. B-plus vs minus) grouped, is displayed below. This figure includes a wide variety of polls, including those 538 has only assigned a "provisional" rating to because they have not conducted enough polls to receive an official rating.
+
+![](figures/grade_plot_simp.png)
+
+The following distribution only assesses those polling organizations with a large enough poll sample for 538 to assign an official rating to. They are also colored by their historical bias in favor of each party. These are relatively balanced.
+
+![](figures/grade_plot_full_simp.png)
+
