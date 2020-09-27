@@ -18,7 +18,7 @@ However, because fundamental indicators, especially Q2 GDP growth (or lack there
 ## Pollster Quality
 This model uses an unweighted average of aggregated polls, but not all polls are created equal. 538 assigns [different rankings](https://github.com/fivethirtyeight/data/tree/master/pollster-ratings) to different polling organizations, and there's quite a bit of variation. Perhaps predictably, most organizations hover around a B rating. A distribution, with letter grade gradations (i.e. B-plus vs minus) grouped, is displayed below. This figure includes a wide variety of polls, including those 538 has only assigned a "provisional" rating to because they have not conducted enough polls to receive an official rating.
 
-![](figures/grade_plot_simp.png)
+![](figures/grade_plot_simple.png)
 
 The following distribution only assesses those polling organizations with a large enough poll sample for 538 to assign an official rating to. They are also colored by their historical bias in favor of each party. These are relatively balanced.
 
