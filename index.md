@@ -1,5 +1,8 @@
+# [3. Polling](polling_3.md)
+
+
 # Economy
-## September18, 2020
+## September 18, 2020
 
 **_"It's the economy, stupid."_**
 
