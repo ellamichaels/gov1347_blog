@@ -1,5 +1,8 @@
+# [3. Polling](polling_3.md)
+
+
 # Economy
-## September18, 2020
+## September 18, 2020
 
 **_"It's the economy, stupid."_**
 
@@ -19,13 +22,50 @@ We’ll build predictive models around three variables to identify how they impa
 If it is true that voters consider each of these indicators at the ballot box, stronger economic performance (i.e. higher GDP and RDI growth and larger decreases in unemployment rates) would track with higher popular vote shares for incumbents.
 
 In order to evaluate the performance of each model, we’ll consider the following tests:
-- **Statistical significance** (cutoff: p < 0.05)
 - **R-squared value:** This is a measure of how much variance in a data set is explained by the model. The R-squared value evaluates the _in-sample fit_ of the model, namely how well the model fits the data it is based on. Formula: R^2 = 1 - (unexplained variance / total variance in data set)
-- **Cross-validation:** Cross validation applies a model to random subsets of its original sample. It evaluates the _out-of-sample fit_ of the model, namely how well it fits data sets it is not based on.
+- **Leave-one-out validation:** Leave-one-out validation builds a model around all but one of its original sample and evaluates the difference between the predicted value and the actual value. This helps approximate the _out-of-sample fit_ of the model, namely how well it fits data sets it is not based on.
 
 ### Q2 GDP Growth
 
-| Trump's Election   |  
+| Impact of Q2 GDP Growth on Incumbent Party Vote Share   |  
 :-------------------------:|
-| ![](gov1347_blog_2/q2_gdp_plot.png)|  
+| ![](figures/q2_gdp_plot.png)|  
+
+_Takeaways:_
+- **Effect:** Based on data from every presidential election since 1976, the average effect of every additional point of Q2 GDP growth, is a 2.969 point increase in the incumbent party’s popular vote share. 
+- **R-squared:** The model’s R-squared value is 0.326, meaning the model explains about 32.6% of the variation in the actual dataset
+- **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 0.0849 points less than the actual result.
+
+**This model predicts that Donald Trump will win 21.26% of the popular vote** based on Q2 GDP growth, which hit a [historic low](https://www.washingtonpost.com/business/2020/07/30/gdp-q2-coronavirus/). This result is highly mismatched with [current polling](https://www.npr.org/2020/09/18/914103948/poll-biden-maintains-lead-over-trump) in which Biden leads Trump 52% to 43%. 
+
+### Q2 RDI Growth
+
+| Impact of Q2 Real Disposable Income (RDI) Growth on Incumbent Party Vote Share   |  
+:-------------------------:|
+| ![](figures/q2_rdi_plot.png)|  
+
+_Takeaways:_
+- **Effect:** Based on data from every presidential election since 1976, the average effect of every additional point of Q2 RDI growth, is a 324 point increase in the incumbent party’s popular vote share (Quarter-by-quarter RDI growth is typically very very low. A one-point increase would be fairly astronomical.)
+- **R-squared:** The model’s R-squared value is 0.258, meaning the model explains about 25.8% of the variation in the actual dataset
+- **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 3.19 points less than the actual result.
+
+**This model predicts that Donald Trump will win 80.33% of the popular vote** based on Q2 RDI growth. This result is also highly mismatched and RDI growth, which was much higher in Q2 than normal, might have been [distorted](https://www.bea.gov/news/2020/gross-domestic-product-2nd-quarter-2020-advance-estimate-and-annual-update) by economic stimulus programs in response to COVID-19. It is unlikely to be especially representative of most Americans' financial situations during the pandemic.
+
+### Q2 Unemployment Rate Change
+
+| Impact of Change in Q2 vs Q1 Unemployment Rate on Incumbent Party Vote Share |  
+:-------------------------:|
+| ![](figures/q2_unchange_plot.png)|  
+
+_Takeaways:_
+- **Effect:** Based on data from every presidential election since 1976, the average effect of a one-point increase in the unemployment rate between Q1 and Q2, is an 8.185 point decrease in the incumbent party’s popular vote share. 
+- **R-squared:** The model’s R-squared value is 0.272, meaning the model explains about 27.2% of the variation in the actual dataset
+- **Leave-one-out results:** Modelling off of data excluding the 2016 presidential election yielded a prediction of the incumbent party’s popular vote share that was 1.220 points greater than the actual result.
+
+**This model predicts that Donald Trump will win a mathematically impossible -28.32% of popular vote.** Unemployment rates skyrocketed from just under 4% to around 13% (and counting) between Q1 and Q2 of 2020 due to COVID-19, a historic increase.
+
+### Conclusions
+
+While data from past elections demonstrates that there is some relationship between economic performance and incumbent performance, model predictions for 2020 indicate that 1) the economy isn't everything, and 2) different economic indicators can tell different stories. Pandemic conditions wildly distort economic conditions and may lead voters to different conclusions about the incumbent's culpability for national performance. 
+
 
