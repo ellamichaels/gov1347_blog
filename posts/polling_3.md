@@ -9,7 +9,7 @@ Last week, we examined the relationship between election outcomes and three diff
 
 Most credible presidential forecasting outlets, [including 538](https://fivethirtyeight.com/features/how-fivethirtyeights-2020-presidential-forecast-works-and-whats-different-because-of-covid-19/), don't rely exlusively on either polls or fundamentals, economic and otherwise. 538's model is certainly more comprehensive, but here we'll explore how an "ensemble model" can have greater explanatory and predictive power. This regression model includes average polling numbers from September (the most recent full month of polling numbers available in 2020) and an interaction term between a candidate's incumbent party status and Q2 GDP growth. Q2 GDP growth, as we explored last week, appears much more likely to be credited to an incumbent party candidate that a non-incumbent party candidate, so its effect will not be the same depending on a candidate's affiliation.
 
-![](figures/full_sept_model.png)
+![](../figures/full_sept_model.png)
 
 This model has an R-squared value of 0.7682, which is far stronger than any of last week's fundamentals-only models. Using leave-one-out validation for 2016, it predicted that Hillary Clinton would win **46.45%** of the popular vote and Donald Trump would win **45.85%**. Interestingly, this is actually a closer margin than the actual result of 47% for Clinton and about 45% for Trump. 
 
@@ -18,11 +18,11 @@ However, because fundamental indicators, especially Q2 GDP growth (or lack there
 ## Pollster Quality
 This model uses an unweighted average of aggregated polls, but not all polls are created equal. 538 assigns [different rankings](https://github.com/fivethirtyeight/data/tree/master/pollster-ratings) to different polling organizations, and there's quite a bit of variation. Perhaps predictably, most organizations hover around a B rating. A distribution, with letter grade gradations (i.e. B-plus vs minus) grouped, is displayed below. This figure includes a wide variety of polls, including those 538 has only assigned a "provisional" rating to because they have not conducted enough polls to receive an official rating.
 
-![](figures/grade_plot_simple.png)
+![](../figures/grade_plot_simple.png)
 
 The following distribution only assesses those polling organizations with a large enough poll sample for 538 to assign an official rating to. They are also colored by their historical bias in favor of each party. These are relatively balanced.
 
-![](figures/grade_plot_full_simp.png)
+![](../figures/grade_plot_full_simp.png)
 
 ## Weighted Predictions
 Given the variation in pollster quality, I generated a prediction on modeled 2020 September poll results using different weights for different pollster grades. I excluded any that received grades of D+ or below (i.e. only those with a C or higher). A-grades received a weight of 0.75, B-grades received a weight of 0.2, and C-grades received a weight of 0.05. This approach yielded the prediction that Biden would receive **50.18%** of the popular vote and Trump would receive **42.46%**. This compared to an overall September average of **49.58%** for Biden and **42.54%** for Trump. The results did not change significantly.
