@@ -10,6 +10,7 @@ library(ggplot2)
 library(janitor)
 library(gt)
 library(broom)
+library(webshot)
 
 
 # reading in poll data
@@ -183,7 +184,10 @@ summary(sept16_model)
 pred_16 <- predict(sept16_model, sept[sept$year == 2016,])
 pred_20 <- predict(sept_model, x)
 pred_20
+pred_16
 
+webshot::install_phantomjs()
+gtsave(full_sept_model, filename = "figures/full_sept_model.png")
 
 ```
 
@@ -220,6 +224,9 @@ a_mean[1,2]*0.75 + b_mean[1,2]*0.2 + c_mean[1,2]*0.05
 # Trump 2020
 a_mean[2,2]*0.75 + b_mean[2,2]*0.2 + c_mean[2,2]*0.05
 
+polls_sept20 %>%
+  group_by(answer) %>%
+  summarize(mean(pct))
 
 ```
 
