@@ -26,7 +26,7 @@ In order to evaluate the performance of each model, we’ll consider the followi
 
 | Impact of Q2 GDP Growth on Incumbent Party Vote Share   |  
 :-------------------------:|
-| ![](figures/q2_gdp_plot.png)|  
+| ![](../figures/q2_gdp_plot.png)|  
 
 _Takeaways:_
 - **Effect:** Based on data from every presidential election since 1976, the average effect of every additional point of Q2 GDP growth, is a 2.969 point increase in the incumbent party’s popular vote share. 
@@ -39,7 +39,7 @@ _Takeaways:_
 
 | Impact of Q2 Real Disposable Income (RDI) Growth on Incumbent Party Vote Share   |  
 :-------------------------:|
-| ![](figures/q2_rdi_plot.png)|  
+| ![](../figures/q2_rdi_plot.png)|  
 
 _Takeaways:_
 - **Effect:** Based on data from every presidential election since 1976, the average effect of every additional point of Q2 RDI growth, is a 324 point increase in the incumbent party’s popular vote share (Quarter-by-quarter RDI growth is typically very very low. A one-point increase would be fairly astronomical.)
@@ -52,7 +52,7 @@ _Takeaways:_
 
 | Impact of Change in Q2 vs Q1 Unemployment Rate on Incumbent Party Vote Share |  
 :-------------------------:|
-| ![](figures/q2_unchange_plot.png)|  
+| ![](../figures/q2_unchange_plot.png)|  
 
 _Takeaways:_
 - **Effect:** Based on data from every presidential election since 1976, the average effect of a one-point increase in the unemployment rate between Q1 and Q2, is an 8.185 point decrease in the incumbent party’s popular vote share. 
