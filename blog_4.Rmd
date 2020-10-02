@@ -1,0 +1,17 @@
+---
+title: "Incumbency"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+approval <- read.csv("data/approval_gallup_1941-2020.csv")
+grants_county <- read.csv("data/fedgrants_bycounty_1988-2008.csv")
+grants_state <- read.csv("data/fedgrants_bystate_1988-2008.csv")
+pv_state <- read.csv("data/popvote_bystate_1948-2016.csv")
+pv_nat <- read.csv("data/popvote_1948-2016.csv")
+
+```
