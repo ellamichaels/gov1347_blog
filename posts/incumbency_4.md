@@ -7,6 +7,7 @@
 
 ### COVID-19 Relief Grants
 
-| AA |  BB |
-:-------------------------:|
-| ![](../figures/covid_aid_by_state.png)|  ![](../figures/covid_percap_aid_by_state.png)|
+AA |  BB 
+:-------------------------:|:-------------------------:
+![](../figures/covid_aid_by_state.png) |  ![](../figures/covid_percap_aid_by_state.png)
+
