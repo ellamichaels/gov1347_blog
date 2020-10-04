@@ -32,3 +32,11 @@ While a number of [key swing states](https://www.politico.com/news/2020/09/08/sw
 :---:|
 |![](../figures/covid_percap_aid_by_state.png)|
 
+### Implications for 2020
+Given the economic distortions of the 2020 race, predictive models that factor in fundamentals will overly penalize Trump. This is true of most of the models I have created thus far, which have him losing in double-digit landslides, and I suspect it is also true of the [Economist’s model](https://projects.economist.com/us-2020-forecast/president) which puts some weight on economic indicators. 
+
+Federal grant spending this cycle is also unlikely to be particularly informative in determining election outcomes. Basically any county affected by COVID (so, most of them) experienced a large increase in federal cash infusions compared to previous years. There are a number of reasons voters are less likely to reward President Trump for federal grant spending this year compared to others. In a normal year, grants would typically add something positive to constituencies. This year, they serve a harm mitigation role. While a voter might reward an incumbent for making her life better, she might not be so inclined if he is just making her life less worse. 
+
+It is tough to say how much other facets of the incumbent advantage will help Trump this cycle. Joe Biden is a highly visible national figure and has [out-fundraised Trump](https://apnews.com/article/election-2020-joe-biden-donald-trump-elections-courts-396ce01a5545cc64b70575f523b93dd9) by a wide margin. Trump did literally file to run for reelection the day he was inaugurated, but the structural advantages of beginning a campaign early mostly have to do with visibility and money anyways. Plus, as we’ve learned, voters are human and humans have recency bias. 
+
+Polling isn’t perfect, but especially in this race, it is probably the most predictive instrument we have. Based on [current poll aggregates](https://projects.fivethirtyeight.com/2020-election-forecast/), Biden will receive just north of 50% of the vote and President Trump will receive about 45%. 
