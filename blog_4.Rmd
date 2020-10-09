@@ -7,11 +7,89 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+library(usmap)
+library(ggplot2)
+library(janitor)
+library(broom)
+library(gt)
+library(stargazer)
 
+# reading in data
 approval <- read.csv("data/approval_gallup_1941-2020.csv")
 grants_county <- read.csv("data/fedgrants_bycounty_1988-2008.csv")
 grants_state <- read.csv("data/fedgrants_bystate_1988-2008.csv")
 pv_state <- read.csv("data/popvote_bystate_1948-2016.csv")
 pv_nat <- read.csv("data/popvote_1948-2016.csv")
+state_pop <- read.csv(url("https://raw.githubusercontent.com/jakevdp/data-USstates/master/state-population.csv")) %>%
+  filter(ages == "total", year == 2012) %>%
+  rename(state = state.region) %>%
+  select(state, population)
+
+# creating by-state covid aid df
+covid_aid <- readxl::read_xlsx("data/hhs_covid.xlsx") %>%
+  clean_names() %>%
+  select(x9, x11) %>%
+  rename(state = x9, award = x11) %>%
+  filter(award > 0) %>%
+  mutate(award = as.numeric(award)) %>%
+  drop_na(award) %>%
+  group_by(state) %>%
+  summarise(award = sum(award)) %>%
+  left_join(state_pop) %>% # creating aid per capita column
+  drop_na() %>%
+  mutate(aid_per_cap = award / population) 
+```
+
+```{r state maps}
+
+# creating aid by state plot
+aid_by_state <- plot_usmap(data = covid_aid, regions = "states", values = "award", labels = TRUE) + 
+  scale_fill_gradient(low = "white", high = "palegreen4", limits = c(50000000, 1500000000),name = "COVID-19 Aid") +
+  theme_void() +
+  labs(title = "COVID-19 Relief Grants by State", 
+       caption = "Source: US Dept. of Health and Human Services",
+       subtitle = "Outliers (large population) excluded")
+
+
+# creating aid per cap by state plot
+percap_aid_by_state <- plot_usmap(data = covid_aid, regions = "states", values = "aid_per_cap", labels = TRUE) + 
+  scale_fill_gradient(low = "white", high = "steelblue2", limits = c(50,150), name = "Aid Per Capita") +
+  theme_void() +
+  labs(title = "Per Capita COVID-19 Relief Grants by State", 
+       caption = "Source: US Dept. of Health and Human Services",
+       subtitle = "Outliers (small population denominator) excluded")
+
+aid_by_state
+percap_aid_by_state
+
+ggsave("figures/covid_aid_by_state.png", plot = aid_by_state)
+ggsave("figures/covid_percap_aid_by_state.png", plot = percap_aid_by_state)
 
 ```
+
+
+```{r federal grant model}
+
+# code from section
+
+grant_model <- lm(dvoteswing_inc ~ dpct_grants*comp_state + as.factor(year), data = grants_county)
+summary(grant_model)
+
+# creating table
+grant_model_gt <- grant_model %>%
+  tidy() %>%
+  select(term, estimate, std.error, p.value) %>%
+  gt() %>% 
+    tab_header(title = "Relationship Between Grant Spending on County Vote Swing Towards Incumbent",
+               subtitle = "Term for interaction between grant spending and state competitiveness") %>% 
+    cols_label(term = "Variable", 
+               estimate = "Estimate",
+               std.error = "Standard Error",
+               p.value = "P-value") %>%
+    tab_source_note(source_note = "Adusted R-squared = 0.4025")
+
+grant_model_gt
+gtsave(grant_model_gt, "figures/grant_model_gt.png")  
+
+```
+
