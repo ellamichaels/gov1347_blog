@@ -1,0 +1,105 @@
+---
+title: "blog_5"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, options(scipen=999))
+
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(geofacet)
+
+# read in data
+pv <- read.csv("data/popvote_1948-2016.csv")
+pv_state <- read.csv("data/popvote_bystate_1948-2016.csv")
+ads_2020 <- read.csv("data/ads_2020.csv") %>%
+  separate(period_enddate, into = c("year", "month", "day"), sep = "-")
+ad_campaigns <- read.csv("data/ad_campaigns_2000-2012.csv") 
+ad_creative <- read.csv("data/ad_creative_2000-2012.csv")
+pollavg <- read.csv("data/pollavg_1968-2016.csv")
+pollavg_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
+polls_16 <- read.csv("data/polls_2016.csv")
+polls_20 <- read.csv("data/polls_2020.csv")
+
+```
+
+```{r}
+
+# state by state spend
+
+## The State-level Air War in 2008 (Obama vs. McCain)
+air_war_map_08 <- ad_campaigns %>%
+  mutate(year = as.numeric(substr(air_date, 1, 4))) %>%
+  mutate(month = as.numeric(substr(air_date, 6, 7))) %>%
+  mutate(state = state.name[match(state, state.abb)]) %>%
+  filter(cycle == 2008) %>%
+  left_join(pvstate_df %>% filter(year == 2008) %>% select(-year), by="state") %>%
+  mutate(winner=ifelse(D_pv2p > R_pv2p, "democrat", "republican")) %>%
+  group_by(cycle, state, air_date, party, winner) %>%
+  summarise(total_cost = sum(total_cost)) %>%
+  filter(!is.na(state)) %>%
+  # ggplot(aes(x=air_date, y=log(total_cost+1), color=party)) +
+  ggplot(aes(x=party, y=total_cost, fill=party)) +
+  geom_bar(stat="identity") +
+  geom_rect(aes(fill=winner), xmin=-Inf, xmax=Inf, ymin=46.3*10^6, ymax=52*10^6) +
+  facet_geo(~ state, scales="free_x") +
+  scale_fill_manual(values = c("blue", "red")) +
+  scale_y_continuous(labels = unit_format(unit = "M", scale = 1e-6)) +
+  xlab("") + ylab("ad spend") +
+  theme_bw() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+air_war_map_08
+
+```
+
+
+```{r}
+
+month_totals <- ad_campaigns %>%
+  separate(air_date, into = c("year", "month", "day"), sep = "-") %>%
+  group_by(cycle, month, party) %>%
+  arrange(month) %>%
+  summarize(month_spend = sum(total_cost)) %>%
+  ungroup() %>%
+  group_by(cycle, party) %>%
+  mutate(total_spend = sum(month_spend)) %>%
+  ungroup() %>%
+  mutate(month_share = month_spend/total_spend) %>%
+  rename(year = cycle) %>%
+  left_join(pv)
+
+month_totals$month <- month_totals$month %>%
+  replace_na("10")
+
+
+
+
+
+# plot of month-by-month spend totals 2000-2012
+month_totals %>%
+  ggplot(aes(x = month, y = month_share, fill = party)) +
+  scale_fill_manual(values = c("steelblue2", "indianred")) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~year) +
+  theme_light() +
+  labs(title = "What share  (2000-2012)",
+       y = "Share of Total Ad Spend by Month",
+       x = "Month",
+       fill = "Party")
+
+
+```
+
+```{r}
+
+ads_2020 %>%
+  summarise(cost = sum(total_cost), biden_totals = sum(biden_airings), trump_totals = sum(trump_airings))
+
+
+```
+
