@@ -10,6 +10,8 @@ library(tidyverse)
 library(ggplot2)
 library(janitor)
 library(geofacet)
+library(cowplot)
+library(scales)
 
 # read in data
 pv <- read.csv("data/popvote_1948-2016.csv")
@@ -22,6 +24,10 @@ pollavg <- read.csv("data/pollavg_1968-2016.csv")
 pollavg_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
 polls_16 <- read.csv("data/polls_2016.csv")
 polls_20 <- read.csv("data/polls_2020.csv")
+vep <- read.csv("data/vep_1980-2016.csv")
+
+ads <- ad_campaigns %>%
+  left_join(ad_creative)
 
 ```
 
@@ -78,8 +84,6 @@ month_totals$month <- month_totals$month %>%
 
 
 
-
-
 # plot of month-by-month spend totals 2000-2012
 month_totals %>%
   ggplot(aes(x = month, y = month_share, fill = party)) +
@@ -87,18 +91,80 @@ month_totals %>%
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~year) +
   theme_light() +
-  labs(title = "What share  (2000-2012)",
+  labs(title = "Share of Total Political Ad Spend by Month (2000-2012)",
        y = "Share of Total Ad Spend by Month",
        x = "Month",
        fill = "Party")
+
+ggsave("figures/ad_spend_month_share.png")
+
+```
+
+```{r}
+
+# data wrangling from class code
+tone_purpose <- ad_creative %>%
+  group_by(ad_purpose) %>%
+  count(ad_tone) %>%
+  mutate(purpose_sum = sum(n)) %>%
+  mutate(tone_share = n/purpose_sum) %>%
+  ungroup()
+
+tone_purpose
+  
+
+tone_purpose %>%
+  filter(ad_tone != "other" & ad_tone != "NA" & ad_purpose != "NA") %>%
+  ggplot(aes(x = ad_purpose, y = tone_share, fill = ad_tone)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_light() +
+  labs(title = "Tone Distributions Among Political Ad Purposes",
+       x = "Ad Purpose",
+       y = "Ad Tone Share",
+       fill = "Ad Tone") +
+  scale_fill_manual(values = c("indianred", "steelblue2", "palegreen4"))
+
+ggsave("figures/ad_tone_by_purpose.png")
 
 
 ```
 
 ```{r}
 
+## Tone in Political Ads
+ad_campaigns %>%
+  left_join(ad_creative) %>%
+  filter(ad_tone %in% c("attack", "promote")) %>%
+  mutate(year = as.numeric(substr(air_date, 1, 4))) %>%
+  mutate(month = as.numeric(substr(air_date, 6, 7))) %>%
+  filter(year %in% c(2000, 2004, 2008, 2012), month > 7) %>%
+  group_by(cycle, air_date, ad_tone) %>%
+  summarise(total_cost = sum(n_stations)) %>%
+  group_by(cycle, air_date) %>%
+  mutate(total_cost = total_cost/sum(total_cost)) %>%
+  ungroup() %>%
+  ggplot(aes(x=air_date, y=total_cost, fill=ad_tone, color=ad_tone)) +
+  # scale_x_date(date_labels = "%b") +
+  scale_fill_manual(values = c("firebrick","palegreen4"), name = "ad tone") +
+  scale_color_manual(values = c("firebrick","palegreen4"), name = "ad tone") +
+  geom_bar(stat = "identity") +
+  facet_wrap(cycle ~ ., scales="free") +
+  labs(x = "",
+       y = "% of ads bought on day",
+       fill = "Ad Tone",
+       title = "Ad Tone Over Time",
+       subtitle = "2000-2012") +
+  theme_light() +
+  theme(axis.text.x = element_blank())
+
+ggsave("figures/ad_tone_over_time.png")
+
+```
+```{r}
+
 ads_2020 %>%
-  summarise(cost = sum(total_cost), biden_totals = sum(biden_airings), trump_totals = sum(trump_airings))
+  summarise(trump_sum = sum(trump_airings), biden_sum = sum(biden_airings)) %>%
+  mutate(pct_biden = biden_sum/(biden_sum + trump_sum), pct_trump = trump_sum/(biden_sum + trump_sum))
 
 
 ```
