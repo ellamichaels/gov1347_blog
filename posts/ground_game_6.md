@@ -35,5 +35,19 @@ What implications do demographic changes and turnout have for election outcomes.
 
 And by extension Republicans experience a commensurate decrease in response to each of these changes. 
 
-
 ![](../figures/turnout_race_dmargin.png)
+
+### Predictive Implications
+
+**Race**
+
+As the US population grows increasingly diverse, the Democratic party will benefit electorally.
+
+**Turnout**
+
+Higher turnout typically favors Democrats, and turnout is expected to hit record highs in 2020. Turnout volatility, however, also makes it more difficult to predict election outcomes.
+
+538’s explanation of its 2020 forecast [explicitly addresses](https://fivethirtyeight.com/features/how-fivethirtyeights-2020-presidential-forecast-works-and-whats-different-because-of-covid-19/) both of these considerations. They note that higher turnout tends to increase Democrat vote shares. They also note that not only is turnout harder to predict during the pandemic, large swings in turnout also make projections more volatile. They estimate a 20% increase in error when predicting each party’s vote share.
+
+While the [Economist’s model](https://projects.economist.com/us-2020-forecast/president/how-this-works) certainly takes turnout into account, it does not address the unique problems that 2020 poses head on in the same way that 538’s approach does. Given how much of an outlier 2020 is, and the centrality of turnout to election predictions, particularly the binomial logit approach the Economist model is built around, this seems like an oversight. 
+
