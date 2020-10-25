@@ -3,26 +3,145 @@ title: "blog_6"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup}
+
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(gt)
+
+state_names <- read.csv("data/abbr-name.csv")
+demographics <- read.csv("data/demographic_1990-2018.csv") %>%
+  rename(state_code = state)
+poll_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
+polls_2020 <- read.csv("data/polls_2020.csv")
+pv_state <- read.csv("data/popvote_bystate_1948-2016.csv")
+
+turnout <- read.csv("data/turnout_1980-2016.csv") %>%
+  mutate(turnout_pct = sub("%", "", turnout_pct)) %>%
+  mutate(turnout_pct = as.numeric(turnout_pct)) %>%
+  mutate(midterm = case_when(year %% 4 == 0 ~ "Presidential",
+                             TRUE ~ "Midterm")) %>%
+  left_join(state_names) %>%
+  left_join(demographics) %>%
+  select(-total) %>%
+  left_join(pv_state) %>%
+  mutate(urm = (Black + Hispanic)) %>%
+  mutate(d_margin = D_pv2p - R_pv2p,
+         r_margin = R_pv2p - D_pv2p)
+  
+
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+turnout %>%
+  filter(state == "United States" & year != 2016) %>%
+  ggplot(aes(x = year, y = turnout_pct, color = midterm)) +
+  geom_line(stat = "identity") +
+  geom_point(stat = "identity") +
+  labs(title = "U.S. Turnout Percentage Trends",
+       subtitle = "1980 - 2014",
+       x = "Year",
+       y = "Turnout Percentage Among Eligible Voters",
+       color = "Election Type") +
+  scale_x_continuous(breaks = turnout$year[seq(1, length(turnout$year), by = 2)]) +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 90)) 
 
-```{r cars}
-summary(cars)
+ggsave("figures/turnout_trends.png")
+
+turnout %>%
+  filter(midterm == "Midterm") %>%
+  drop_na(turnout_pct) %>%
+  summarise(mean(turnout_pct))
+
+turnout %>%
+  filter(midterm == "Presidential") %>%
+  drop_na(turnout_pct) %>%
+  summarise(mean(turnout_pct))
+
 ```
 
-## Including Plots
+```{r}
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+race_turnout <- lm(turnout_pct ~ Black + Hispanic, data = turnout)
+summary(race_turnout)
+
+race_turnout_gt <- race_turnout %>%
+  tidy() %>%
+  select(term, estimate, p.value) %>%
+  gt() %>%
+  tab_header(title = "Race and Turnout",
+             subtitle = "Higher Black and Hispanic Populations \nAssociated With Lower Turnout")
+
+race_turnout_gt
+gtsave(race_turnout_gt, "figures/race_turnout.png")
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+turnout %>%
+  filter(year == 2014 & state != "United States" & state != "District of Columbia") %>%
+  ggplot(aes(y = reorder(state, turnout_pct), x = turnout_pct, fill = urm)) +
+  geom_bar(stat = "identity") +
+  scale_fill_gradient(low = "aliceblue", high = "dodgerblue3") +
+  theme_classic() +
+  labs(title = "2014 Turnout Percentage by State",
+       x = "Turnout Percentage Among Eligible Voters",
+       y = "State",
+       fill = "Percent URM*",
+       caption = "* Black, Hispanic, Indigenous")
+
+ggsave("figures/state_turnout_2014.png")
+
+
+```
+
+
+```{r}
+
+d_margin_model <- lm(d_margin ~ turnout_pct + urm, data = turnout)
+
+turnout_race_dmargin <- d_margin_model %>%
+  tidy() %>%
+  select(term, estimate, p.value) %>%
+  gt() %>%
+  tab_header(title = "Effect of Turnout and URM Share on Democratic Win Margin")
+
+gtsave(turnout_race_dmargin, "figures/turnout_race_dmargin.png")
+
+```
+
+
+```{r}
+
+demographics %>%
+  mutate(urm = (Black + Hispanic + Indigenous)) %>%
+  group_by(year) %>%
+  mutate(urm_pop = urm*total/100, us_total = sum(total)) %>%
+  mutate(urm_total = sum(urm_pop)) %>%
+  ungroup() %>%
+  group_by(year) %>%
+  mutate(urm_share = urm_total*100/us_total) %>%
+  filter(state_code == "AK") %>%
+  ggplot(aes(x = year, y = urm_share)) +
+  geom_line(stat = "identity") +
+  theme_light() +
+  scale_x_continuous(breaks = demographics$year[seq(1, length(demographics$year), by = 2)]) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "URM Share of US Population Over Time",
+       subtitle = "1990 - 2018",
+       x = "Year",
+       y = "URM Share of US Population")
+
+ggsave("figures/urm_share.png")
+
+  
+```
+
