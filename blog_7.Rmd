@@ -10,20 +10,194 @@ library(tidyverse)
 library(ggplot2)
 library(usmap)
 library(gt)
+library(broom)
+library(geofacet)
 
 covid_poll <- read.csv("data/covid_wave22.csv")
-covid_treatment <- read.csv("data/all-states-history_covidtreatment.csv")
-polls_2020 <- read.csv("data/polls_2020.csv")
-covid_deaths <- read.csv("data/Provisional_COVID-19_Death_Counts_in_the_United_States_by_County.csv")
-covid_death_st <- read.csv("data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv")
+state_pop <- readxl::read_xlsx("data/state_pop.xlsx")
+
+pv <- read.csv("data/popvote_1948-2016.csv")
+state_names <- read.csv("data/abbr-name.csv")
+polls_2020 <- read.csv("data/polls_2020.csv") %>%
+  separate(end_date, into = c("month", "day", "year"), sep = "/") %>%
+  mutate(month = as.numeric(month)) 
+
+polls_20 <- polls_2020 %>%
+  left_join(state_names) %>%
+  drop_na(state_code) %>%
+  filter(candidate_party == "REP" | candidate_party == "DEM") %>%
+  ungroup() %>%
+  select(-state) %>%
+  rename(state = state_code)
+
+poll_state <- polls_2020 %>%
+  filter(state != "") %>%
+  group_by(state) %>%
+  left_join(state_names) %>%
+  drop_na(state_code) %>%
+  filter(candidate_party == "REP" | candidate_party == "DEM") %>%
+  ungroup() %>%
+  select(-state) %>%
+  rename(state = state_code)
+
+covid_treatment <- read.csv("data/all-states-history_covidtreatment.csv") %>%
+  separate(date, into = c("year", "month", "day"), sep = "-") %>%
+  mutate(month = as.numeric(month)) %>%
+  group_by(month, state) %>%
+  mutate(test_increase = sum(totalTestResultsIncrease)) %>%
+  select(state, month, test_increase, totalTestResults) %>%
+  left_join(polls_2020) %>%
+  ungroup() %>%
+  filter(answer == "Trump" | answer == "Biden") %>%
+  group_by(state, month, answer) %>%
+  mutate(month_pct = mean(pct)) %>%
+  ungroup() %>%
+  select(state, month, test_increase, totalTestResults, month_pct, answer) %>%
+  unique() %>%
+  pivot_wider(names_from = answer, values_from = month_pct)
+
+
+
+
+covid_deaths <- read.csv("data/Provisional_COVID-19_Death_Counts_in_the_United_States_by_County.csv") 
+covid_death_st <- read.csv("data/United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv") %>%
+    separate(submission_date, into = c("month", "day", "year"), sep = "/") %>%
+  mutate(month = as.numeric(month)) %>%
+  left_join(poll_state, by = c("state", "month")) %>%
+  select(state, month, tot_cases, new_case, tot_death, new_death, answer, candidate_party, pct) %>%
+  drop_na(pct) %>%
+  filter(answer == "Trump" | answer == "Biden") %>%
+  group_by(state, month, answer) %>%
+  mutate(month_pct = mean(pct)) %>%
+  select(-pct, -candidate_party) %>%
+  ungroup() %>%
+  group_by(state, month) %>%
+  mutate(new_case = sum(new_case),
+         tot_cases = max(tot_cases),
+         tot_death = max(tot_death),
+         new_death = sum(new_death)) %>%
+  ungroup() %>%
+  unique() %>%
+  pivot_wider(names_from = answer, values_from = month_pct)
+
+covid_poll_st <- covid_poll %>%
+  group_by(ppstaten) %>%
+  count(Q1) %>%
+  pivot_wider(names_from = Q1, values_from = n) %>%
+  select(-Skipped) %>%
+  mutate(pct_approve = Approve/(Approve + Disapprove),
+         pct_disapprove = Disapprove/(Approve + Disapprove))
+
+
+
 
 ```
 
 
 ```{r}
 
+death_approval <- lm(Trump ~ tot_death, data = covid_death_st)
+summary(death_approval)
+
+death_approval_gt <- death_approval %>% 
+  tidy() %>%
+  select(term, estimate, p.value) %>%
+  gt() %>%
+  tab_header(title = "Relationship Between Total Deaths and Trump Monthly Polling Average",
+             subtitle = "State Level")
+
+gtsave(data = death_approval_gt, filename = "figures/death_approval_gt.png")
+
+tot_approval <- lm(Trump ~ tot_cases, data = covid_death_st)
+summary(tot_approval)
+
+cases_approval_gt <- tot_approval %>% 
+  tidy() %>%
+  select(term, estimate, p.value) %>%
+  gt() %>%
+  tab_header(title = "Relationship Between Total Cases and Trump Monthly Polling Average",
+             subtitle = "State Level")
+
+gtsave(data = cases_approval_gt, filename = "figures/cases_approval_gt.png")
+
+death_tot_mod <- lm(Trump ~ tot_death + tot_cases, data = covid_death_st)
+summary(death_tot_mod)
+death_tot_mod %>% 
+  tidy() %>%
+  select(term, estimate, p.value) %>%
+  gt() %>%
+  tab_header(title = "Relationship Between Total Cases and Trump Monthly Polling Average",
+             subtitle = "State Level")
+
+```
+
+```{r}
+
+covid_death_st %>%
+  ggplot(aes(x = tot_death, y = Trump)) +
+  geom_point(color = "indianred") +
+  geom_smooth(method = "lm", color = "black") +
+  theme_classic() +
+  labs(title = "Total Deaths Per State vs. Trump Monthly Polling Average",
+       x = "Total Deaths (State-Level)",
+       y = "Trump Monthly Polling Average (State)")
+
+ggsave("figures/total_death_polling.png")
+
+covid_death_st %>%
+  ggplot(aes(x = tot_cases, y = Trump)) +
+  geom_point(color = "steelblue2") +
+  geom_smooth(method = "lm", color = "black") +
+  theme_classic() +
+  labs(title = "Total Cases Per State vs. Trump Monthly Polling Average",
+       x = "Total Cases (State-Level)",
+       y = "Trump Monthly Polling Average (State)")
+
+ggsave("figures/total_cases_polling.png")
+
+```
+```{r}
+
+treatment_poll_mod <- lm(Trump ~ test_increase, data = covid_treatment)
+summary(treatment_poll_mod)
+
+```
 
 
+```{r}
+
+covid_poll %>%
+  filter(Q1 != "Skipped" & QPID != "Skipped" & QPID != "Something else") %>%
+  ggplot(aes(Q1, fill = QPID)) +
+  geom_bar() +
+  scale_fill_manual(values = c("steelblue2", "indianred", "palegreen4")) +
+  theme_classic() +
+  labs(title = "How Much Voters Approve of Trump's Handling of the Pandemic",
+       subtitle = "By Party",
+       x = "Approval vs. Disapproval",
+       y = "",
+       fill = "Pary Affiliation")
+
+ggsave("figures/covid_party_approval.png")
+  
+
+```
+
+
+```{r}
+
+covid_poll %>%
+  count(Q1) %>%
+  mutate(x = n/533)
+
+covid_poll %>%
+  group_by(QPID) %>%
+  count(Q1) %>%
+  mutate(pct = n/sum(n))
+
+pv %>%
+  filter(incumbent == TRUE) %>%
+  summarise(mean(pv2p))
 
 ```
 
