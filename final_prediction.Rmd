@@ -1,0 +1,44 @@
+---
+title: "final_prediction"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(gt)
+library(usmap)
+library(statebins)
+
+
+# read in
+polls <- read.csv("data/pollavg_1968-2016.csv")
+polls_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
+vep <- read.csv("data/vep_1980-2016.csv")
+demog <- read.csv("data/demographic_1990-2018.csv")
+state_names <- read.csv("data/abbr-name.csv")
+
+# polls + pv
+oct_polls_20 <- read.csv("data/president_polls.csv") %>%
+  left_join(state_names) %>%
+  select(-state, -candidate_party) %>%
+  rename(state = state_code) %>%
+  filter(str_detect(start_date, "^10")) %>% # just october
+  filter(answer == "Biden" | answer == "Trump") %>%
+  pivot_wider(names_from = answer, values_from = pct) %>%
+  mutate(sample_weight = sample_size/sum(sample_size))
+  
+
+
+```
+
+
+```{r}
+
+
+
+```
+
