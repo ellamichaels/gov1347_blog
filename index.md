@@ -9,3 +9,5 @@
 # [Demographics and Turnout](posts/ground_game_6.md)
 
 # [Shocks](posts/shocks_7.md)
+
+# [2020 Presidential Election Prediction](posts/final_prediction.md)
