@@ -12,25 +12,123 @@ library(broom)
 library(gt)
 library(usmap)
 library(statebins)
+library(stargazer)
 
 
+```
+
+
+```{r simple data}
 # read in
-polls <- read.csv("data/pollavg_1968-2016.csv")
-polls_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
 vep <- read.csv("data/vep_1980-2016.csv")
-demog <- read.csv("data/demographic_1990-2018.csv")
 state_names <- read.csv("data/abbr-name.csv")
+pv <- read.csv("data/popvote_1948-2016.csv")
+polls <- read.csv("data/pollavg_1968-2016.csv") 
+polls_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
+polls_20 <- read.csv("data/president_polls.csv")
+
+```
+
+
+```{r data manipulation}
+
+# simple
+demo_2020 <- read.csv("data/2020_race.csv") %>%
+  mutate(year = 2020) %>%
+  left_join(state_names) %>%
+  select(-state) %>%
+  rename(state = state_code) %>%
+  drop_na(state) %>%
+  mutate(Asian = as.numeric(Asian),
+         American.Indian.Alaska.Native = as.numeric(American.Indian.Alaska.Native)) %>%
+  mutate(poc = (1 - White)*100,
+         change = "f",
+         White = 100*White) %>%
+  select(year, state, poc, White, change) 
+
 
 # polls + pv
-oct_polls_20 <- read.csv("data/president_polls.csv") %>%
+
+poll_simple <- polls_st %>%
   left_join(state_names) %>%
-  select(-state, -candidate_party) %>%
+  select(-state) %>%
   rename(state = state_code) %>%
-  filter(str_detect(start_date, "^10")) %>% # just october
+  filter(weeks_left >= 1 & weeks_left <= 8) %>%
+  group_by(party, state, year) %>%
+  summarise(poll = mean(avg_poll)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = party, values_from = poll)
+
+pv_state <- read.csv("data/popvote_bystate_1948-2016.csv") %>%
+  left_join(state_names) %>%
+  select(-state) %>%
+  rename(state = state_code) %>%
+  left_join(pv, by = "year")
+
+oct_polls_20 <- read.csv("data/president_polls.csv") %>%
+  left_join(state_names) %>%  
+  filter(!duplicated(subset(., select = c(sample_size, pollster, start_date, end_date, answer)))) %>%
+  select(-state, -candidate_party, -candidate_name) %>%
+  rename(state = state_code) %>%
+  filter(str_detect(start_date, "^10") | str_detect(start_date, "^9")) %>% # just october/sept
   filter(answer == "Biden" | answer == "Trump") %>%
   pivot_wider(names_from = answer, values_from = pct) %>%
-  mutate(sample_weight = sample_size/sum(sample_size))
-  
+  mutate(sample_weight = sample_size/sum(sample_size)) %>%
+  group_by(state) %>%
+  mutate(state_weight = sample_size/sum(sample_size)) %>%
+  mutate(weighted_biden = state_weight*Biden,
+         weighted_trump = state_weight*Trump) %>%
+  drop_na(weighted_biden) %>%
+  drop_na(weighted_trump) %>%
+  summarise(state_biden = sum(weighted_biden),
+         state_trump = sum(weighted_trump)) %>%
+  rename(dem_polling = state_biden,
+         rep_polling = state_trump) 
+
+demog <- read.csv("data/demographic_1990-2018.csv") %>%
+  mutate(poc = 100 - White) %>%
+  mutate(lag = lag(poc, n = 204L, order_by = NULL),
+         lag_year = lag(year, n = 204L, order_by = NULL),
+         lag_black = lag(Black, n = 204L, order_by = NULL)) %>%
+  mutate(change = poc - lag,
+         change_black = Black - lag_black) %>%
+  select(year, state, poc, change, White)
+
+demog_2020 <- demog %>%
+  filter(year == 2016) %>%
+  rbind(demo_2020) %>%
+  pivot_wider(names_from = year, values_from = c(poc, change, White)) %>%
+  mutate(change = poc_2020 - poc_2016,
+         White = White_2020) %>%
+  select(state, White, change)
+
+
+
+```
+
+
+```{r aggregates}
+
+# joining all
+
+full <- pv_state %>%
+  left_join(demog, by = c("year", "state")) %>%
+  left_join(poll_simple) %>%
+  rename(dem_polling = democrat, 
+         rep_polling = republican)
+
+
+# 2020 data
+
+# change, White, democrat, republican
+
+trump_2020 <- oct_polls_20 %>%
+  left_join(demog_2020) %>%
+  mutate(incumbent = TRUE)
+
+biden_2020 <- oct_polls_20 %>%
+  left_join(demog_2020) %>%
+  mutate(incumbent = FALSE)
 
 
 ```
@@ -38,7 +136,144 @@ oct_polls_20 <- read.csv("data/president_polls.csv") %>%
 
 ```{r}
 
+# dem models
+d_poll_model <- lm(D_pv2p ~ state + dem_polling + incumbent, data = full)
+summary(d_poll_model)  
+
+d_demo_model <- lm(D_pv2p ~ change*White, data = full)
+summary(d_demo_model)
+
+# rep models
+r_poll_model <- lm(R_pv2p ~ state + rep_polling + incumbent, data = full)
+summary(r_poll_model)
+
+r_demo_model <- lm(R_pv2p ~ change*White, data = full)
+summary(r_demo_model)
+
+
+d_poll <- as_tibble(predict(d_poll_model, biden_2020))
+r_poll <- as_tibble(predict(r_poll_model, trump_2020))
+d_demo <- as_tibble(predict(d_demo_model, biden_2020))
+r_demo <- as_tibble(predict(r_demo_model, trump_2020))
+
+# weights
+r_demo_weight <- 7/(60+7) # rep
+d_demo_weight <- 5/(73+5) # dem
+
+r_poll_weight <- 1 - r_demo_weight
+d_poll_weight <- 1 - d_demo_weight
+
+```
+
+```{r gt summaries}
+# dem
+d_poll_gt <- d_poll_model %>%
+  tidy(conf.int = TRUE) %>%
+  filter(term == "(Intercept)" | term == "dem_polling" | term == "incumbentTRUE") %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  gt() %>%
+  tab_header(title = "Impact of Polling and Incumbency on State-Level Democrat Voteshare",
+             subtitle = "State Terms Omitted (see Appendix)")
+
+d_demo_gt <- d_demo_model %>%
+  tidy(conf.int = TRUE) %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  gt() %>%
+  tab_header(title = " Impact of Demographic Change and White Voter Population on State-Level Democrat Voteshare")
+
+#rep
+r_poll_gt <- r_poll_model %>%
+  tidy(conf.int = TRUE) %>%
+  filter(term == "(Intercept)" | term == "rep_polling" | term == "incumbentTRUE") %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  gt() %>%
+  tab_header(title = "Impact of Polling and Incumbency on State-Level Republican Voteshare",
+             subtitle = "State Terms Omitted (see Appendix)")
+
+r_demo_gt <- r_demo_model %>%
+  tidy(conf.int = TRUE) %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  gt() %>%
+  tab_header(title = " Impact of Demographic Change and White Voter Population on State-Level Republican Voteshare")
+
+#appendix
+d_appendix_gt <- d_poll_model %>%
+  tidy(conf.int = TRUE) %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  gt() %>%
+  tab_header(title = "Impact of Polling and Incumbency on State-Level Democrat Voteshare")
+
+r_appendix_gt <- r_poll_model %>%
+  tidy(conf.int = TRUE) %>%
+  select(term, estimate, std.error, conf.low, conf.high, p.value) %>%
+  gt() %>%
+  tab_header(title = "Impact of Polling and Incumbency on State-Level Republican Voteshare")
+```
+
+
+```{r gt saving}
+
+gtsave(d_poll_gt, "figures/d_poll_gt.png")
+gtsave(r_poll_gt, "figures/r_poll_gt.png")
+
+gtsave(d_demo_gt, "figures/d_demo_gt.png")
+gtsave(r_demo_gt, "figures/r_demo_gt.png")
+
+gtsave(d_appendix_gt, "figures/d_appendix_gt.png")
+gtsave(r_appendix_gt, "figures/r_appendix_gt.png")
 
 
 ```
+
+
+```{r}
+
+full_results <- state_names %>%
+  filter(state_code != "DC") %>%
+  select(state_code) %>%
+  rename(state = state_code) %>%
+  arrange(state)
+
+full_results$dpoll <- d_poll$value
+full_results$rpoll <- r_poll$value
+full_results$ddemo <- d_demo$value
+full_results$rdemo <- r_demo$value
+
+full_results <- full_results %>%
+  mutate(r_result = (r_demo_weight*rdemo + r_poll_weight*rpoll),
+         d_result = (d_demo_weight*ddemo + d_poll_weight*dpoll)) %>%
+  mutate(rpv2p = r_result/(r_result + d_result),
+         dpv2p = d_result/(r_result + d_result)) %>%
+  mutate(winner = ifelse(rpv2p > dpv2p, "Trump", "Biden")) %>%
+  mutate(winner_poll = ifelse(dpoll > rpoll, "Biden", "Trump")) %>%
+  mutate(close = ifelse((abs(rpv2p - dpv2p) < .05), TRUE, FALSE),
+         super_close = ifelse((abs(rpv2p - dpv2p) < .03), TRUE, FALSE)) %>%
+  mutate(final = case_when(winner == "Trump" & close == TRUE ~ "Leans Trump",
+                           winner == "Biden" & close == TRUE ~ "Leans Biden",
+                           winner == "Trump" & close == FALSE ~ "Trump",
+                           TRUE ~ "Biden"))
+
+  
+
+```
+
+
+```{r and so we go}
+
+full_results %>%
+  ggplot(aes(fill = final, state = state, border_col = close)) +
+  geom_statebins() +
+  theme_statebins() +
+  scale_fill_manual(values = c("#2D4994", "#91AEF9", "#F0919A", "#C13839")) +
+  labs(title = "2020 Electoral Prediction",
+       subtitle = "Ensemble Model Based on Sept/Oct Polling, Incumbency, \nand Demographic Change",
+       fill = "Results",
+       caption = "Leans: Predicted Win Margin <%5")
+
+```
+Dems: 12 + 7 + 55 + 9 + 5 +10 + 10 + 16 + 20 + 20 + 29 + 3 +11+4+7+14+3+10+3+13+4
+LeanD: 6+11+6+20+16+4
+LeanR: 38+15+18+29
+
+
 
