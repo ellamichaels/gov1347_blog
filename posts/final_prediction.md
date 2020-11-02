@@ -47,15 +47,25 @@ Another factor I incorporated was demographic data. Given the effect of response
 
 ### Model 1 Results
 
-Note that this model included a calibration term for each state. Full model results with coefficients for each state are in the [appendix](final_appendix.md) but omitted here for space. Coefficients and confidence intervals are below:
+Note that this model included a calibration term for each state. Full model results with coefficients for each state are in the [appendix](final_appendix.md) but omitted here for space. Coefficients, standard error, confidence intervals, and p-values are below:
 
 ![](../figures/r_poll_gt.png)
 ![](../figures/d_poll_gt.png)
 
-Democrat and Republican iterations of Model 1 had R-squared values of .835 and .738, indicating strong in-sample performance (explaining 70+% of in-sample variation)
+Democrat and Republican iterations of Model 1 had R-squared values of .835 and .738, respectively, indicating strong in-sample performance (explaining 70+% of in-sample variation)
 
 ## Model 2 Results
 
+Coefficients, standard error, confidence intervals, and p-values are below:
+
 ![](../figures/r_demo_gt.png)
 ![](../figures/d_demo_gt.png)
+
+Democrat and Republican iterations of Model 1 both had R-squared values of .075. Demographics can only explain so much of an election's result, but results were statistically significant.
+
+## Uncertainty
+
+Notably, many states have razor thin margins of victory. There are margins of less than 5% in ten states (shaded lighter) and less than 3% in AZ, FL, GA, IA, NC (collectively 163 electoral votes, more than enough to sway the election) and well within the margin of error of this model.
+
+
 
