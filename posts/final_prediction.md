@@ -36,10 +36,25 @@ The second model incorporated the following independent variables:
 
 I weighted the two models based on their R^2 values (what Nate Silver does for FiveThirtyEight’s election forecast, according to the Election Analytics Glossary™). The weights varied slightly by party, but hovered around an 85-90% weight for Model 1 and a 10-15% weight for Model 2. 
 
+## Explanation
 
-### GTs
+I selected my predictive metrics in large part based on the fact that 2020 is a very atypical year and election, and many independent variables that might normally work very well in a model are likely to be far less predictive this year than most. Economic fundamentals, for example, tend to generate incredibly skewed results given COVID and its implications. As for shocks, it is generally challenging to predict exactly what the impact of fairly unprecedented events will be. COVID deaths and other follow-on effects are almost certainly going to affect election outcomes, but it is difficult to know precisely how much.
+
+This year more than most, polling is likely to be our best predictive bet. As we’ve observed throughout the course, while polling is hardly perfect, it’s tough to beat their predictive power with other measures, even in a typical election year. Furthermore, polling is often a [measure](https://hollis.harvard.edu/primo-explore/fulldisplay?docid=TN_cdi_gale_infotracacademiconefile_A14564056&context=PC&vid=HVD2&search_scope=everything&tab=everything&lang=en_US) of how much fundamentals and other electoral factors are impacting voters. Other survey-based measures like presidential approval seemed a little redundant given that I was incorporating polling and I didnt’ want to overfit.
+
+Another factor I incorporated was demographic data. Given the effect of response bias on polling numbers, the demographics of the electorate can certainly influence how much to weight different polling results and impact predictions (just ask 2016 pollsters). Finally, I also incorporated incumbency. I [frankly think](incumbency_4.md) incumbency won’t have a huge impact in this election, and as discussed below, my models don’t either in terms of predicted vote share (less than a 1% bump for Trump). That said, I was a little spooked by how bullish my predictions are for Biden and amenable to incorporating more factors that might give Trump an advantage. Notably, **omitting incumbency from my model flips North Carolina** to a Biden state. Guess we’ll see on Tuesday. 
+
+
+### Model 1 Results
+
+Note that this model included a calibration term for each state. Full model results with coefficients for each state are in the [appendix](final_appendix.md) but omitted here for space. Coefficients and confidence intervals are below:
+
 ![](../figures/r_poll_gt.png)
 ![](../figures/d_poll_gt.png)
+
+Democrat and Republican iterations of Model 1 had R-squared values of .835 and .738, indicating strong in-sample performance (explaining 70+% of in-sample variation)
+
+## Model 2 Results
 
 ![](../figures/r_demo_gt.png)
 ![](../figures/d_demo_gt.png)
