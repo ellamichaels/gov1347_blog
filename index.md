@@ -1,13 +1,19 @@
-# [Economy](posts/economy_2.md)
+# Election Analytics
 
-# [Polling](posts/polling_3.md)
+Welcome to my election analytics blog! I created this as part of Gov 1347, a course at Harvard focused on predicting and analysing electoral outcomes, largely in the context of the 2020 presidential race. 
 
-# [Incumbency](posts/incumbency_4.md)
+## [2020 Final Presidential Election Prediction](posts/final_prediction.md)
 
-# [Air War](posts/air_5.md)
+## [Economy](posts/economy_2.md)
 
-# [Demographics and Turnout](posts/ground_game_6.md)
+## [Polling](posts/polling_3.md)
 
-# [Shocks](posts/shocks_7.md)
+## [Incumbency](posts/incumbency_4.md)
 
-# [2020 Presidential Election Prediction](posts/final_prediction.md)
+## [Air War](posts/air_5.md)
+
+## [Demographics and Turnout](posts/ground_game_6.md)
+
+## [Shocks and COVID-19](posts/shocks_7.md)
+
+
