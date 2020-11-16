@@ -20,17 +20,16 @@ For each party, I created a weighted ensemble of two linear regression models to
 The first model incorporated the following independent variables:
 
 - _**Weighted candidate polling average from September and October.**_ I used polling data from [FiveThirtyEight]( https://data.fivethirtyeight.com/), current as of 2pm ET on October 29. Ideally, I would have just used October polling because polling numbers closer to an election date are far more predictive, but data available from credible pollsters (i.e. not [banned](https://projects.fivethirtyeight.com/pollster-ratings/) by FiveThirtyEight) only included numbers for 40 states. As such, I included September polling to cover the entire country. I created a weighted average for each state weighting proportionally based on sample size.
-
-- _Incumbency Term_  
-- _State Term_ to calibrate for historical voting behavior by state
+- _**Incumbency Term**_  
+- _**State Term**_ to calibrate for historical voting behavior by state
 
 **Model 2:** ``lm(party_pv2p ~ change*White, data = full)``
 
 The second model incorporated the following independent variables:
 
-- **Change in non-white (POC) population** share (percentage) since the previous presidential election
-- *White population share**
-- **Interaction term** between POC population change and White population
+- **_Change in non-white (POC) population_** share (percentage) since the previous presidential election
+- **_White population share_**
+- **_Interaction term_** between POC population change and White population
 
 **Weighting**
 
