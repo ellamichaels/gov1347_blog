@@ -26,6 +26,7 @@ pv <- read.csv("data/popvote_1948-2016.csv")
 polls <- read.csv("data/pollavg_1968-2016.csv") 
 polls_st <- read.csv("data/pollavg_bystate_1968-2016.csv")
 polls_20 <- read.csv("data/president_polls.csv")
+results <- read.csv("data/popvote_bystate_1948-2020.csv")
 
 ```
 
@@ -134,7 +135,7 @@ biden_2020 <- oct_polls_20 %>%
 ```
 
 
-```{r}
+```{r models}
 
 # dem models
 d_poll_model <- lm(D_pv2p ~ state + dem_polling + incumbent, data = full)
@@ -226,7 +227,7 @@ gtsave(r_appendix_gt, "figures/r_appendix_gt.png")
 ```
 
 
-```{r}
+```{r full results}
 
 full_results <- state_names %>%
   filter(state_code != "DC") %>%
@@ -257,6 +258,21 @@ full_results <- full_results %>%
 
 ```
 
+```{r full results table}
+
+state_results_gt <- full_results %>%
+  mutate(rpv2p = round(rpv2p, 4)*100,
+         dpv2p = round(dpv2p, 4)*100) %>%
+  select(state, winner, rpv2p, dpv2p) %>%
+  rename(State = state,
+         Winner = winner) %>%
+  gt() %>%
+  tab_header(title = "State-by-State Predicted Voteshare")
+
+gtsave(state_results_gt, "figures/state_results_gt.png")
+
+```
+
 
 ```{r and so we go}
 
@@ -265,15 +281,44 @@ full_results %>%
   geom_statebins() +
   theme_statebins() +
   scale_fill_manual(values = c("#2D4994", "#91AEF9", "#F0919A", "#C13839")) +
-  labs(title = "2020 Electoral Prediction",
-       subtitle = "Ensemble Model Based on Sept/Oct Polling, Incumbency, \nand Demographic Change",
+  labs(title = "2020 Electoral College Prediction",
        fill = "Results",
        caption = "Leans: Predicted Win Margin <%5")
 
+ggsave("figures/final_prediction.png")
+
 ```
-Dems: 12 + 7 + 55 + 9 + 5 +10 + 10 + 16 + 20 + 20 + 29 + 3 +11+4+7+14+3+10+3+13+4
-LeanD: 6+11+6+20+16+4
-LeanR: 38+15+18+29
+
+```{r}
+
+results_20 <- results %>%
+  filter(year == 2020) %>%
+  left_join(state_names) %>%
+  select(-state) %>%
+  rename(state = state_code) %>%
+  select(-year) %>%
+  left_join(full_results) %>%
+  mutate(diff = D_pv2p - dpv2p,
+         real_winner = ifelse(D_pv2p > R_pv2p, "Biden", "Trump"))
+
+mean(results_20$D_pv2p) - mean(results_20$dpv2p)
+
+results_20 %>%
+  ggplot(aes(x = diff, y = fct_rev(fct_reorder(state, diff)), fill = real_winner)) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("#2D4994", "#C13839")) +
+  theme_classic() +
+  labs(x = "Point Difference in Predicted vs. Real Democrat Vote Share",
+       y = "State",
+       fill = "State Winner")
+
+
+
+
+```
+
+
+
 
 
 
