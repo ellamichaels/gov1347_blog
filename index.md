@@ -4,6 +4,10 @@ Welcome to my election analytics blog! I created this as part of Gov 1347, a cou
 
 ## [2020 Final Presidential Election Prediction](posts/final_prediction.md)
 
+## [Post-Election Reflection](posts/reflection.md)
+
+-----------------------------------------------------------------------
+
 ## [Economy](posts/economy_2.md)
 
 ## [Polling](posts/polling_3.md)
