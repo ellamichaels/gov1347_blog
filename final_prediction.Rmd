@@ -13,6 +13,7 @@ library(gt)
 library(usmap)
 library(statebins)
 library(stargazer)
+library(modelr)
 
 
 ```
@@ -298,26 +299,95 @@ results_20 <- results %>%
   rename(state = state_code) %>%
   select(-year) %>%
   left_join(full_results) %>%
-  mutate(diff = D_pv2p - dpv2p,
-         real_winner = ifelse(D_pv2p > R_pv2p, "Biden", "Trump"))
+  left_join(oct_polls_20) %>%
+  mutate(diff = 100*(D_pv2p - dpv2p),
+         real_winner = ifelse(D_pv2p > R_pv2p, "Biden", "Trump")) %>%
+  mutate(dpoll_share = dpoll/(dpoll + rpoll),
+         rpoll_share = rpoll/(dpoll + rpoll)) %>%
+  mutate(poll_diff = 100*(D_pv2p - dpoll_share)) %>%
+  mutate(real_poll = 100*(D_pv2p - dem_polling/(dem_polling + rep_polling)))
 
-mean(results_20$D_pv2p) - mean(results_20$dpv2p)
+### RMSE###
+# full
+full_rmse <- sqrt(mean(results_20$diff^2, na.rm = TRUE))
+# polling only
+polling_rmse <- sqrt(mean(results_20$real_poll^2, na.rm = TRUE))
+# Model 1
+mod1_rmse <- sqrt(mean(results_20$poll_diff^2, na.rm = TRUE))
 
+results_20$diff[results_20$state == "IA"]
+results_20$real_poll[results_20$state == "IA"]
+results_20$poll_diff[results_20$state == "IA"]
+
+### AV ERR (party) ###
+# full
+err_full <- mean(results_20$diff, na.rm = TRUE)
+# polling only
+err_poll <- mean(results_20$real_poll, na.rm = TRUE)
+# Mod 1
+err_mod1 <- mean(results_20$poll_diff, na.rm = TRUE)
+
+
+# full model
 results_20 %>%
   ggplot(aes(x = diff, y = fct_rev(fct_reorder(state, diff)), fill = real_winner)) +
   geom_bar(stat = "identity") + 
   scale_fill_manual(values = c("#2D4994", "#C13839")) +
+  scale_x_continuous(breaks = c(-9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8)) +
   theme_classic() +
   labs(x = "Point Difference in Predicted vs. Real Democrat Vote Share",
        y = "State",
-       fill = "State Winner")
+       fill = "State Winner") +
+  labs(title = "Full Model: Difference Between Predicted and Real Democrat 2-Party Vote Share",
+       subtitle = "Overpredicted Democrat Vote Shares Correspond with Negative Values (and V.V.)",
+       caption = paste("RMSE: ",round(full_rmse, 2)))
 
+ggsave("figures/full_error.png")
+
+# just polling
+results_20 %>%
+  ggplot(aes(x = real_poll, y = fct_rev(fct_reorder(state, real_poll)), fill = real_winner)) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("#2D4994", "#C13839")) +
+  scale_x_continuous(breaks = c(-9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8)) +
+  theme_classic() +
+  labs(x = "Point Difference in Predicted vs. Real Democrat Vote Share",
+       y = "State",
+       fill = "State Winner") +
+  labs(title = "Polling Only: Difference Between Predicted and Real Democrat 2-Party Vote Share",
+     subtitle = "Overpredicted Democrat Vote Shares Correspond with Negative Values (and V.V.)",
+     caption = paste("RMSE: ",round(polling_rmse, 2)))
+
+ggsave("figures/polling_error.png")
+
+
+# poll/inc/state model
+results_20 %>%
+  ggplot(aes(x = poll_diff, y = fct_rev(fct_reorder(state, poll_diff)), fill = real_winner)) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("#2D4994", "#C13839")) +
+  scale_x_continuous(breaks = c(-9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8)) +
+  theme_classic() +
+  labs(x = "Point Difference in Predicted vs. Real Democrat Vote Share",
+       y = "State",
+       fill = "State Winner") +
+  labs(title = "Model 1 Only (No Demographics): Difference Between Predicted and Real Democrat 2-Party Vote Share",
+       subtitle = "Overpredicted Democrat Vote Shares Correspond with Negative Values (and V.V.)",
+       caption = paste("RMSE: ",round(mod1_rmse, 2)))
+
+ggsave("figures/mod1_error.png")
+
+
+plot_usmap(data = results_20, regions = "states", values = "diff", labels = TRUE) +
+  scale_fill_gradient2(low = "steelblue2", midpoint = 0, mid = "white", high = "indianred", name = "Prediction Error") +
+  labs(title = "Map of Error Between Predicted and Real 2-Party Vote Share",
+       subtitle = "Overpredicted Democrat Vote Shares Correspond with Negative Values, Blue Coloring")
+
+ggsave("figures/error_map.png")
 
 
 
 ```
-
-
 
 
 

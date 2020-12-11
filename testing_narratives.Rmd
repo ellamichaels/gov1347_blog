@@ -1,0 +1,151 @@
+---
+title: "testing_narratives"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readstata13)
+
+# loading data
+nationscape <- read.dta13("data/nationscape.dta")
+
+nationscape %>%
+  count(news_sources_facebook)
+
+```
+
+```{r polarization, fb}
+
+# Republican view
+reps %>%
+  filter(group_favorability_republicans %in% c("Very favorable", "Very unfavorable", "Somewhat favorable", "Somewhat unfavorable")) %>%
+  select(news_sources_facebook, group_favorability_republicans) %>%
+  group_by(news_sources_facebook) %>%
+  mutate(fb_count = n()) %>%
+  group_by(group_favorability_republicans, news_sources_facebook) %>%
+  mutate(fav_count = n()) %>%
+  summarise(val = fav_count/fb_count) %>%
+  unique() %>%
+  ggplot(aes(x = news_sources_facebook, y = val, fill = group_favorability_republicans)) +
+  geom_col() + theme_classic() +
+  scale_fill_manual(values = c("#C13839", "#F0919A", "#91AEF9", "#2D4994")) +
+  labs(title = "Differences in How Republicans View Republicans \nBetween Different Levels of Social Media Use",
+       x = "Used Social Media for Political News In Past Week",
+       y = "Percent Respondents",
+       fill = "Favorability of Republicans")
+
+ggsave("figures/reps_view_reps.png")
+
+reps %>%
+  filter(group_favorability_democrats %in% c("Very favorable", "Very unfavorable", "Somewhat favorable", "Somewhat unfavorable")) %>%
+  select(news_sources_facebook, group_favorability_democrats) %>%
+  group_by(news_sources_facebook) %>%
+  mutate(fb_count = n()) %>%
+  group_by(group_favorability_democrats, news_sources_facebook) %>%
+  mutate(fav_count = n()) %>%
+  summarise(val = fav_count/fb_count) %>%
+  unique() %>%
+  ggplot(aes(x = news_sources_facebook, y = val, fill = group_favorability_democrats)) +
+  geom_col() + theme_classic() +
+  scale_fill_manual(values = c("#2D4994", "#91AEF9", "#F0919A", "#C13839")) +
+  labs(title = "Differences in How Republicans View Democrats \nBetween Different Levels of Social Media Use",
+       x = "Used Social Media for Political News In Past Week",
+       y = "Percent Respondents",
+       fill = "Favorability of Democrats")
+
+ggsave("figures/reps_view_dems.png")
+
+# Dem view
+dems %>%
+  filter(group_favorability_republicans %in% c("Very favorable", "Very unfavorable", "Somewhat favorable", "Somewhat unfavorable")) %>%
+  select(news_sources_facebook, group_favorability_republicans) %>%
+  group_by(news_sources_facebook) %>%
+  mutate(fb_count = n()) %>%
+  group_by(group_favorability_republicans, news_sources_facebook) %>%
+  mutate(fav_count = n()) %>%
+  summarise(val = fav_count/fb_count) %>%
+  unique() %>%
+  ggplot(aes(x = news_sources_facebook, y = val, fill = group_favorability_republicans)) +
+  geom_col() + theme_classic() +
+  scale_fill_manual(values = c("#C13839", "#F0919A", "#91AEF9", "#2D4994")) +
+  labs(title = "Differences in How Democrats View Republicans \nBetween Different Levels of Social Media Use",
+       x = "Used Social Media for Political News In Past Week",
+       y = "Percent Respondents",
+       fill = "Favorability of Republicans")
+
+ggsave("figures/dems_view_reps.png")
+
+
+dems %>%
+  filter(group_favorability_democrats %in% c("Very favorable", "Very unfavorable", "Somewhat favorable", "Somewhat unfavorable")) %>%
+  select(news_sources_facebook, group_favorability_democrats) %>%
+  group_by(news_sources_facebook) %>%
+  mutate(fb_count = n()) %>%
+  group_by(group_favorability_democrats, news_sources_facebook) %>%
+  mutate(fav_count = n()) %>%
+  summarise(val = fav_count/fb_count) %>%
+  unique() %>%
+  ggplot(aes(x = news_sources_facebook, y = val, fill = group_favorability_democrats)) +
+  geom_col() + theme_classic() +
+  scale_fill_manual(values = c("#2D4994", "#91AEF9", "#F0919A", "#C13839")) +
+  labs(title = "Differences in How Democrats View Democrats \nBetween Different Levels of Social Media Use",
+       x = "Used Social Media for Political News In Past Week",
+       y = "Percent Respondents",
+       fill = "Favorability of Democrats")
+
+ggsave("figures/dems_view_dems.png")
+
+
+```
+
+
+```{r statistical significance, fb}
+
+reps <- nationscape %>%
+  filter(primary_party == "The Republican Primary/Caucus")
+
+dems <- nationscape %>%
+  filter(primary_party == "The Democratic Primary/Caucus")
+
+# Rep Views
+dems_among_reps <- lm(as.numeric(group_favorability_democrats) ~ news_sources_facebook, data = reps)
+summary(dems_among_reps)
+
+reps_among_reps <- lm(as.numeric(group_favorability_republicans) ~ news_sources_facebook, data = reps)
+summary(reps_among_reps)
+
+# Dem Views
+dems_among_dems <- lm(as.numeric(group_favorability_democrats) ~ news_sources_facebook, data = dems)
+summary(dems_among_dems)
+
+reps_among_dems <- lm(as.numeric(group_favorability_republicans) ~ news_sources_facebook, data = dems)
+summary(reps_among_dems)
+
+
+# Rep Views Fox
+dems_among_reps_fox <- lm(as.numeric(group_favorability_democrats) ~ news_sources_fox, data = reps)
+summary(dems_among_reps_fox)
+
+
+```
+
+
+```{r}
+
+reps %>%
+  group_by(news_sources_facebook) %>%
+  count(news_sources_msnbc)
+
+reps %>%
+  group_by(news_sources_facebook) %>%
+  count(news_sources_fox)
+
+dems %>%
+  group_by(news_sources_facebook) %>%
+  count(news_sources_msnbc)
+
+```
+
