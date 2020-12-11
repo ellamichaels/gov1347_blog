@@ -20,4 +20,6 @@ Welcome to my election analytics blog! I created this as part of Gov 1347, a cou
 
 ## [Shocks and COVID-19](posts/shocks_7.md)
 
+## [Social Media and Polarization](posts/testing_narratives.md)
+
 
